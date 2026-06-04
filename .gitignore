@@ -48,3 +48,5 @@ frontend/*.tsbuildinfo
 frontend/next-env.d.ts
 backend/*.tsbuildinfo
 backend/next-env.d.ts
+promt.txt
+
