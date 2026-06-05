@@ -23,7 +23,6 @@ router.post('/data', async (req, res) => {
       const insertQuery = `INSERT INTO temp_measurements (dev_id, bb, tb) VALUES (?, ?, ?)`;
       await db.execute(insertQuery, [dev_id, bb, tb]);
     }
-
     res.json({ success: true, message: 'Data berhasil disimpan' });
   } catch (error) {
     console.error('Error saving hardware data:', error);
