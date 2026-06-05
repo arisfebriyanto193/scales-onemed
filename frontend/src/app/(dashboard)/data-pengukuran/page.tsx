@@ -2,11 +2,6 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '@/lib/api';
 
-// ─── Konstanta WebSocket ───────────────────────────────────────
-const WS_URL   = 'wss://server-iot-qbyte.qbyte.web.id/ws';
-const BB_TOPIC = 'onemed/bb';
-const TB_TOPIC = 'onemed/tb';
-
 // ─── Tipe Data ────────────────────────────────────────────────
 interface Measurement {
   id: number; child_id: number; nama_anak: string; tanggal_lahir: string;
@@ -17,20 +12,17 @@ interface Child { id: number; nama_anak: string; }
 
 const EMPTY = { child_id: '', tanggal_kunjungan: '', berat_badan: '', tinggi_badan: '', catatan: '' };
 
-// ─── Hook: WebSocket untuk BB & TB ────────────────────────────
-function useScaleWS(enabled: boolean) {
+// ─── Hook: Polling API untuk BB & TB ────────────────────────────
+function useScaleAPI(enabled: boolean) {
   const [bb, setBb] = useState<string>('');
   const [tb, setTb] = useState<string>('');
   const [wsStatus, setWsStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
-  const wsRef = useRef<WebSocket | null>(null);
+
+  // Hardcode dev_id untuk sementara
+  const DEV_ID = 'ESP32_ONEMED_01';
 
   useEffect(() => {
     if (!enabled) {
-      // Tutup koneksi kalau tidak dipakai
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
       setWsStatus('disconnected');
       setBb('');
       setTb('');
@@ -38,57 +30,35 @@ function useScaleWS(enabled: boolean) {
     }
 
     setWsStatus('connecting');
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
+    let lastUpdate = 0;
 
-    ws.onopen = () => {
-      setWsStatus('connected');
-      // Subscribe ke topic BB dan TB
-      ws.send(JSON.stringify({ action: 'subscribe', topic: BB_TOPIC }));
-      ws.send(JSON.stringify({ action: 'subscribe', topic: TB_TOPIC }));
-    };
+    const fetchHardwareData = async () => {
+      try {
+        const res = await api.get(`/hardware/data/${DEV_ID}`);
+        if (res.data?.success && res.data?.data) {
+          const data = res.data.data;
+          setWsStatus('connected');
+          
+          // Format ke string sesuai state form
+          const valBb = parseFloat(data.bb).toFixed(2);
+          const valTb = parseFloat(data.tb).toFixed(1);
 
-    ws.onmessage = (e) => {
-      // Server bisa kirim beberapa JSON sekaligus dipisah newline
-      const lines = (e.data as string).split('\n');
-      for (const raw of lines) {
-        if (!raw.trim()) continue;
-        try {
-          const msg = JSON.parse(raw);
-          const topic: string   = msg.topic   || '';
-          const payload: string = msg.payload !== undefined ? String(msg.payload) : '';
-
-          if (topic === BB_TOPIC) {
-            const val = parseFloat(payload);
-            if (!isNaN(val) && val > 0) setBb(val.toFixed(2));
-          } else if (topic === TB_TOPIC) {
-            const val = parseFloat(payload);
-            if (!isNaN(val) && val > 0) setTb(val.toFixed(1));
-          }
-        } catch {
-          // Format alternatif: "TOPIC|VALUE"
-          if (raw.includes('|')) {
-            const [t, v] = raw.split('|');
-            if (t.trim() === BB_TOPIC) {
-              const val = parseFloat(v);
-              if (!isNaN(val) && val > 0) setBb(val.toFixed(2));
-            } else if (t.trim() === TB_TOPIC) {
-              const val = parseFloat(v);
-              if (!isNaN(val) && val > 0) setTb(val.toFixed(1));
-            }
-          }
+          if (valBb !== '0.00' && valBb !== bb) setBb(valBb);
+          if (valTb !== '0.0' && valTb !== tb) setTb(valTb);
         }
+      } catch (err) {
+        setWsStatus('connecting'); // Sedang mencari alat / offline
       }
     };
 
-    ws.onerror = () => setWsStatus('disconnected');
-    ws.onclose = () => setWsStatus('disconnected');
+    // Polling pertama kali
+    fetchHardwareData();
 
-    return () => {
-      ws.close();
-      wsRef.current = null;
-    };
-  }, [enabled]);
+    // Polling setiap 1.5 detik
+    const interval = setInterval(fetchHardwareData, 1500);
+
+    return () => clearInterval(interval);
+  }, [enabled, bb, tb]);
 
   return { bb, tb, wsStatus };
 }
@@ -109,10 +79,10 @@ export default function DataPengukuranPage() {
   const [inputMode, setInputMode] = useState<'manual' | 'auto'>('manual');
   const isAuto = inputMode === 'auto' && modal !== null;
 
-  // ── WebSocket (hanya aktif saat mode auto & modal terbuka) ───
-  const { bb: wsBb, tb: wsTb, wsStatus } = useScaleWS(isAuto);
+  // ── Polling API (hanya aktif saat mode auto & modal terbuka) ───
+  const { bb: wsBb, tb: wsTb, wsStatus } = useScaleAPI(isAuto);
 
-  // Sync nilai WS → form saat mode auto
+  // Sync nilai API → form saat mode auto
   useEffect(() => {
     if (isAuto) {
       setForm(prev => ({
@@ -202,12 +172,12 @@ export default function DataPengukuranPage() {
     </div>
   );
 
-  // ─── Status WS badge ─────────────────────────────────────────
+  // ─── Status IoT badge ─────────────────────────────────────────
   const wsBadge = () => {
     const map = {
-      connecting:   { bg: '#fef3c7', color: '#92400e', dot: '#f59e0b', text: 'Menghubungkan...' },
-      connected:    { bg: '#d1fae5', color: '#065f46', dot: '#10b981', text: 'Terhubung — menunggu data' },
-      disconnected: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444', text: 'Tidak terhubung' },
+      connecting:   { bg: '#fef3c7', color: '#92400e', dot: '#f59e0b', text: 'Mencari data timbangan...' },
+      connected:    { bg: '#d1fae5', color: '#065f46', dot: '#10b981', text: 'Terhubung — menerima data' },
+      disconnected: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444', text: 'Alat tidak terhubung' },
     }[wsStatus];
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px',
@@ -216,7 +186,7 @@ export default function DataPengukuranPage() {
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: map.dot,
           display: 'inline-block',
           ...(wsStatus === 'connecting' ? { animation: 'pulse 1.2s infinite' } : {}) }} />
-        📡 WebSocket: {map.text}
+        📡 Status Alat: {map.text}
       </div>
     );
   };
@@ -392,8 +362,8 @@ export default function DataPengukuranPage() {
                   borderRadius: '8px', padding: '9px 12px', fontSize: '0.8rem',
                   color: '#15803d', marginBottom: '10px', display: 'flex',
                   alignItems: 'center', gap: '6px' }}>
-                  🔄 Data BB & TB diisi <strong>otomatis</strong> dari timbangan IoT via WebSocket.
-                  Pastikan ESP32 aktif dan mengirim data.
+                  🔄 Data BB & TB diisi <strong>otomatis</strong> dari timbangan IoT.
+                  Pastikan ESP32 aktif.
                 </div>
               )}
 

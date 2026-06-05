@@ -13,13 +13,18 @@ const childrenRoutes    = require('./routes/children.routes');
 const measurementRoutes = require('./routes/measurements.routes');
 const statusRoutes      = require('./routes/nutritional_status.routes');
 const dashboardRoutes   = require('./routes/dashboard.routes');
+const hardwareRoutes    = require('./routes/hardware.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
 // ── Middleware ──
+const allowedOrigins = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',').map(u => u.trim())
+  : ['http://localhost:3000'];
+
 app.use(cors({
-  origin : process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin : allowedOrigins,
   methods : ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -42,6 +47,7 @@ app.use('/api/children',         childrenRoutes);
 app.use('/api/measurements',     measurementRoutes);
 app.use('/api/nutritional-status', statusRoutes);
 app.use('/api/dashboard',        dashboardRoutes);
+app.use('/api/hardware',         hardwareRoutes);
 
 // ── 404 Handler ──
 app.use((req, res) => {
