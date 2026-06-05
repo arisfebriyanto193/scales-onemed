@@ -118,9 +118,7 @@ export default function LoginPage() {
           <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.85rem', lineHeight: 1.6 }}>
             "Dengan pemantauan rutin dan data yang akurat, kita bisa mencegah stunting sejak dini."
           </p>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem', marginTop: '10px' }}>
-            — Kementerian Kesehatan RI
-          </p>
+          
         </div>
       </div>
 
