@@ -31,15 +31,21 @@ const IconLogout = () => (
     <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
   </svg>
 );
+const IconUsers = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+  </svg>
+);
 
 const NAV = [
   { href: '/dashboard',       label: 'Dashboard',       Icon: IconDashboard  },
   { href: '/data-anak',       label: 'Data Anak',       Icon: IconChild      },
   { href: '/data-pengukuran', label: 'Data Pengukuran', Icon: IconClipboard  },
   { href: '/cek-status-gizi', label: 'Cek Status Gizi', Icon: IconActivity   },
+  { href: '/kelola-user',     label: 'Kelola User',     Icon: IconUsers      },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void }) {
   const pathname = usePathname();
   const router   = useRouter();
 
@@ -57,9 +63,7 @@ export default function Sidebar() {
       borderRight: '1px solid #e8edf2',
       display: 'flex',
       flexDirection: 'column',
-      position: 'fixed',
-      top: 0, left: 0, bottom: 0,
-      zIndex: 100,
+      position: 'relative', /* Changed to relative inside the container */
     }}>
       {/* Logo */}
       <div style={{ padding: '24px 20px', borderBottom: '1px solid #f1f5f9' }}>
@@ -91,7 +95,7 @@ export default function Sidebar() {
         {NAV.map(({ href, label, Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/');
           return (
-            <Link key={href} href={href} style={{ textDecoration: 'none', display: 'block', marginBottom: '3px' }}>
+            <Link key={href} href={href} onClick={onCloseMobile} style={{ textDecoration: 'none', display: 'block', marginBottom: '3px' }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',

@@ -14,6 +14,7 @@ const measurementRoutes = require('./routes/measurements.routes');
 const statusRoutes      = require('./routes/nutritional_status.routes');
 const dashboardRoutes   = require('./routes/dashboard.routes');
 const hardwareRoutes    = require('./routes/hardware.routes');
+const usersRoutes       = require('./routes/users.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -48,6 +49,7 @@ app.use('/api/measurements',     measurementRoutes);
 app.use('/api/nutritional-status', statusRoutes);
 app.use('/api/dashboard',        dashboardRoutes);
 app.use('/api/hardware',         hardwareRoutes);
+app.use('/api/users',            usersRoutes);
 
 // ── 404 Handler ──
 app.use((req, res) => {

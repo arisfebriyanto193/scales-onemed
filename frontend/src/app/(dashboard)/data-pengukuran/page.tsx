@@ -12,6 +12,16 @@ interface Child { id: number; nama_anak: string; }
 
 const EMPTY = { child_id: '', tanggal_kunjungan: '', berat_badan: '', tinggi_badan: '', catatan: '' };
 
+// ─── Field Wrapper ────────────────────────────────────────────
+const Field = ({ label, children: fc }: { label: string; children: React.ReactNode }) => (
+  <div style={{ marginBottom: '14px' }}>
+    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '5px', color: '#374151' }}>
+      {label}
+    </label>
+    {fc}
+  </div>
+);
+
 // ─── Hook: Polling API untuk BB & TB ────────────────────────────
 function useScaleAPI(enabled: boolean) {
   const [bb, setBb] = useState<string>('');
@@ -162,15 +172,6 @@ export default function DataPengukuranPage() {
     catch (e: any) { alert(e.response?.data?.message || 'Gagal menghapus.'); }
   };
 
-  // ─── Field Wrapper ────────────────────────────────────────────
-  const Field = ({ label, children: fc }: { label: string; children: React.ReactNode }) => (
-    <div style={{ marginBottom: '14px' }}>
-      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '5px', color: '#374151' }}>
-        {label}
-      </label>
-      {fc}
-    </div>
-  );
 
   // ─── Status IoT badge ─────────────────────────────────────────
   const wsBadge = () => {
@@ -237,7 +238,7 @@ export default function DataPengukuranPage() {
 
       <div className="card">
         {/* Toolbar */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ position: 'relative', maxWidth: '280px', flex: '1 1 200px' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>

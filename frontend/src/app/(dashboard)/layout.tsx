@@ -8,6 +8,7 @@ const BREADCRUMB: Record<string, string> = {
   '/data-anak':       'Data Anak',
   '/data-pengukuran': 'Data Pengukuran',
   '/cek-status-gizi': 'Cek Status Gizi',
+  '/kelola-user':     'Kelola User',
 };
 
 const IconBell = () => (
@@ -20,6 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router   = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<{ nama_lengkap?: string; username?: string } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('penting_token');
@@ -33,8 +35,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
-      <main style={{
+      <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)}></div>
+      <div className={`sidebar-container ${sidebarOpen ? 'open' : ''}`}>
+        <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
+      </div>
+      
+      <main className="layout-main" style={{
         marginLeft: '240px',
         flex: 1,
         background: '#f8fafb',
@@ -43,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         flexDirection: 'column',
       }}>
         {/* Top Header */}
-        <header style={{
+        <header className="layout-header" style={{
           background: '#ffffff',
           borderBottom: '1px solid #e8edf2',
           padding: '0 28px',

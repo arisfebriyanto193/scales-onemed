@@ -124,7 +124,7 @@ export default function CekStatusGiziPage() {
 
       <div className="card">
         {/* Filter bar */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
           <select className="input-penting" style={{ maxWidth: '200px' }}
             value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
             <option value="">Semua Status</option>

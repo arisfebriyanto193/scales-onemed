@@ -12,6 +12,13 @@ const EMPTY: Omit<Child, 'id'> = {
   tanggal_lahir: '', nama_orang_tua: '', alamat: '', wilayah: '', nomor_telepon: '',
 };
 
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div style={{ marginBottom: '14px' }}>
+    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '5px', color: '#374151' }}>{label}</label>
+    {children}
+  </div>
+);
+
 export default function DataAnakPage() {
   const [data, setData]       = useState<Child[]>([]);
   const [search, setSearch]   = useState('');
@@ -58,20 +65,13 @@ export default function DataAnakPage() {
     catch (e: any) { alert(e.response?.data?.message || 'Gagal menghapus.'); }
   };
 
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div style={{ marginBottom: '14px' }}>
-      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '5px', color: '#374151' }}>{label}</label>
-      {children}
-    </div>
-  );
-
   return (
     <div>
       <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: '#1e293b' }}>Data Anak</h1>
 
       <div className="card">
         {/* Toolbar */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
           <input className="input-penting" placeholder="Cari nama / NIK..." style={{ maxWidth: '260px' }}
             value={search} onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchData(search)} />

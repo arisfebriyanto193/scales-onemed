@@ -9,10 +9,17 @@
     "migrate": "node migrations/run_migrations.js",
     "migrate:fresh": "node migrations/run_migrations.js --fresh"
   },
-  "keywords": ["penting", "stunting", "posyandu", "gizi", "express"],
+  "keywords": [
+    "penting",
+    "stunting",
+    "posyandu",
+    "gizi",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
