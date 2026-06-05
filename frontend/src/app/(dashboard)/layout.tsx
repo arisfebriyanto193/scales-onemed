@@ -40,19 +40,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
       </div>
       
-      <main className="layout-main" style={{
-        marginLeft: '240px',
-        flex: 1,
-        background: '#f8fafb',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
+      <main className="layout-main">
         {/* Top Header */}
         <header className="layout-header" style={{
           background: '#ffffff',
           borderBottom: '1px solid #e8edf2',
-          padding: '0 28px',
           height: '60px',
           display: 'flex',
           justifyContent: 'space-between',

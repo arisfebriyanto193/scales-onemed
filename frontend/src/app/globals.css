@@ -306,6 +306,21 @@ textarea.input-penting { line-height: 1.5; }
   width: 240px;
 }
 
+/* Main content — pushed right by sidebar on desktop */
+.layout-main {
+  margin-left: 240px;
+  flex: 1;
+  background: #f8fafb;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header — desktop padding */
+.layout-header {
+  padding: 0 28px;
+}
+
 /* Hamburger button — hidden on desktop */
 .mobile-menu-btn {
   display: none;
