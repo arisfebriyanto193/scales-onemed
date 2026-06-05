@@ -11,6 +11,48 @@ interface StatusGizi {
   status_keseluruhan: string; is_stunting: number; is_wasting: number;
 }
 
+// SVG Icons
+const IconClipboard = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z"/><rect x="4" y="4" width="16" height="18" rx="2"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/>
+  </svg>
+);
+const IconCheck = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+);
+const IconWarning = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+);
+const IconAlertCircle = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+);
+const IconSearch = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+);
+const IconRefresh = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+  </svg>
+);
+const IconWarningSmall = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}>
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+);
+const IconCheckSmall = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '4px'}}>
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
 function badgeStatus(status: string) {
   const map: Record<string, string> = {
     'Gizi Baik/Normal' : 'badge-normal',
@@ -65,13 +107,13 @@ export default function CekStatusGiziPage() {
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         {[
-          { label: 'Total Data', value: data.length, icon: '📋', bg: '#eff6ff', ib: '#dbeafe' },
-          { label: 'Gizi Normal', value: normalCount, icon: '✅', bg: '#f0fdf4', ib: '#bbf7d0' },
-          { label: 'Kurang Gizi', value: kurangCount, icon: '⚠️', bg: '#fff7ed', ib: '#fed7aa' },
-          { label: 'Stunting', value: stuntingCount, icon: '🔴', bg: '#fef2f2', ib: '#fecaca' },
+          { label: 'Total Data', value: data.length, icon: <IconClipboard />, bg: '#ffffff', ib: '#eff6ff', ic: '#2563eb' },
+          { label: 'Gizi Normal', value: normalCount, icon: <IconCheck />, bg: '#ffffff', ib: '#f0fdf4', ic: '#16a34a' },
+          { label: 'Kurang Gizi', value: kurangCount, icon: <IconWarning />, bg: '#ffffff', ib: '#fff7ed', ic: '#d97706' },
+          { label: 'Stunting', value: stuntingCount, icon: <IconAlertCircle />, bg: '#ffffff', ib: '#fef2f2', ic: '#dc2626' },
         ].map(c => (
-          <div key={c.label} className="stat-card" style={{ background: c.bg, padding: '16px' }}>
-            <div className="stat-icon" style={{ background: c.ib, width: '40px', height: '40px', fontSize: '1.1rem' }}>{c.icon}</div>
+          <div key={c.label} className="stat-card" style={{ background: c.bg, padding: '16px', border: '1px solid #e8edf2' }}>
+            <div className="stat-icon" style={{ background: c.ib, color: c.ic, width: '40px', height: '40px', fontSize: '1.1rem' }}>{c.icon}</div>
             <div>
               <p style={{ fontSize: '0.72rem', color: '#64748b' }}>{c.label}</p>
               <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>{loading ? '...' : c.value}</p>
@@ -96,9 +138,11 @@ export default function CekStatusGiziPage() {
             <option value="1">Stunting</option>
             <option value="0">Tidak Stunting</option>
           </select>
-          <button className="btn-primary" onClick={fetchData}>🔍 Filter</button>
+          <button className="btn-primary" onClick={fetchData}>
+            <IconSearch /> Filter
+          </button>
           <button className="btn-secondary" onClick={() => { setFilterStatus(''); setFilterStunting(''); setTimeout(fetchData, 50); }}>
-            ↺ Reset
+            <IconRefresh /> Reset
           </button>
           <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: '#64748b' }}>
             Menampilkan <strong>{data.length}</strong> data
@@ -146,9 +190,9 @@ export default function CekStatusGiziPage() {
                   </td>
                   <td>
                     {d.is_stunting ? (
-                      <span className="badge badge-buruk">⚠️ Stunting</span>
+                      <span className="badge badge-buruk"><IconWarningSmall /> Stunting</span>
                     ) : (
-                      <span className="badge badge-normal">✓ Normal</span>
+                      <span className="badge badge-normal"><IconCheckSmall /> Normal</span>
                     )}
                   </td>
                   <td style={{ fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
@@ -172,7 +216,7 @@ export default function CekStatusGiziPage() {
           <span className="badge badge-kurang" style={{ marginRight: 6 }}>Kurang Gizi / Pendek</span>
           <span className="badge badge-buruk"  style={{ marginRight: 6 }}>Gizi Buruk / Sangat Pendek</span>
           <span className="badge badge-lebih"  style={{ marginRight: 6 }}>Gizi Lebih / Tinggi</span>
-          <span className="badge badge-stunting">⚠️ Stunting (TB/U &lt; -2SD)</span>
+          <span className="badge badge-stunting"><IconWarningSmall /> Stunting (TB/U &lt; -2SD)</span>
         </div>
       </div>
     </div>

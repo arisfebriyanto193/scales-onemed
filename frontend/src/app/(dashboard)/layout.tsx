@@ -69,29 +69,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Right side */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Notification bell */}
-            <button style={{
-              width: '36px', height: '36px',
-              borderRadius: '9px',
-              border: '1px solid #e8edf2',
-              background: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#64748b',
-              transition: 'background 0.12s, color 0.12s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#eff6ff';
-              e.currentTarget.style.color = '#2563eb';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = '#fff';
-              e.currentTarget.style.color = '#64748b';
-            }}
-            >
-              <IconBell />
-            </button>
-
             {/* Divider */}
             <div style={{ width: '1px', height: '28px', background: '#e8edf2' }}/>
 

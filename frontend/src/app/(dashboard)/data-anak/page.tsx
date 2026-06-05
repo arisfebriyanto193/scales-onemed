@@ -109,7 +109,7 @@ export default function DataAnakPage() {
                   <td>{c.nomor_telepon || '-'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }} onClick={() => openEdit(c)}>✏️ Edit</button>
+                      <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }} onClick={() => openEdit(c)}> Edit</button>
                       <button className="btn-danger" onClick={() => handleDelete(c.id, c.nama_anak)}>🗑️</button>
                     </div>
                   </td>
