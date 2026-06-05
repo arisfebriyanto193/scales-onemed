@@ -66,7 +66,7 @@ export default function DataAnakPage() {
   };
 
   return (
-    <div>
+    <div className="page-content" style={{ padding: '24px' }}>
       <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: '#1e293b' }}>Data Anak</h1>
 
       <div className="card">
@@ -80,7 +80,7 @@ export default function DataAnakPage() {
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>
@@ -137,7 +137,7 @@ export default function DataAnakPage() {
               <input className="input-penting" placeholder="Nama lengkap anak"
                 value={form.nama_anak} onChange={e => setForm({ ...form, nama_anak: e.target.value })} />
             </Field>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <Field label="Jenis Kelamin *">
                 <select className="input-penting" value={form.jenis_kelamin}
                   onChange={e => setForm({ ...form, jenis_kelamin: e.target.value })}>
@@ -157,7 +157,7 @@ export default function DataAnakPage() {
               <textarea className="input-penting" rows={2} placeholder="Alamat lengkap"
                 value={form.alamat} onChange={e => setForm({ ...form, alamat: e.target.value })} style={{ resize: 'none' }} />
             </Field>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <Field label="Wilayah">
                 <input className="input-penting" placeholder="Kelurahan/Posyandu"
                   value={form.wilayah} onChange={e => setForm({ ...form, wilayah: e.target.value })} />

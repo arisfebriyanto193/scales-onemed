@@ -79,7 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div style={{ width: '1px', height: '28px', background: '#e8edf2' }}/>
 
             {/* User info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
                 width: '34px', height: '34px',
                 borderRadius: '50%',
@@ -88,10 +88,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontWeight: 700, fontSize: '0.85rem',
                 boxShadow: '0 2px 8px rgba(13,148,136,0.35)',
+                flexShrink: 0,
               }}>
                 {initials}
               </div>
-              <div>
+              <div style={{ display: 'none' }} className="user-info-desktop">
                 <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', lineHeight: 1.2 }}>
                   {user?.nama_lengkap || user?.username || 'Pengguna'}
                 </p>
@@ -102,7 +103,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page Content */}
-        <div style={{ padding: '28px', flex: 1 }}>
+        <div style={{ flex: 1 }}>
           {children}
         </div>
       </main>

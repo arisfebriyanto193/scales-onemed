@@ -101,11 +101,11 @@ export default function CekStatusGiziPage() {
   const kurangCount   = data.filter(d => d.status_keseluruhan === 'Kurang Gizi').length;
 
   return (
-    <div>
+    <div className="page-content" style={{ padding: '24px' }}>
       <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: '#1e293b' }}>Cek Status Gizi</h1>
 
       {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         {[
           { label: 'Total Data', value: data.length, icon: <IconClipboard />, bg: '#ffffff', ib: '#eff6ff', ic: '#2563eb' },
           { label: 'Gizi Normal', value: normalCount, icon: <IconCheck />, bg: '#ffffff', ib: '#f0fdf4', ic: '#16a34a' },
@@ -150,7 +150,7 @@ export default function CekStatusGiziPage() {
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>

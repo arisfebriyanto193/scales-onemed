@@ -105,13 +105,13 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div>
+    <div className="page-content" style={{ padding: '24px' }}>
       <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: '#1e293b' }}>
         Grafik Pertumbuhan Bayi
       </h1>
 
       {/* Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         {statCards.map(c => (
           <div key={c.label} className="stat-card" style={{ background: c.color, border: '1px solid #e8edf2' }}>
             <div className="stat-icon" style={{ background: c.iconBg, color: c.iconColor }}>{c.icon}</div>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Growth Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div className="chart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* BB */}
         <div className="card">
           <h3 style={{

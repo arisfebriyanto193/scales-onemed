@@ -23,10 +23,12 @@ const char* WIFI_SSID     = "TALAS 1";
 const char* WIFI_PASSWORD = "kitahebat";
 
 // Ganti dengan endpoint HTTP POST server kamu
-const char* SERVER_URL = "https://server-iot-qbyte.qbyte.web.id/api/data";
+const char* SERVER_URL = "https://penting-be.qbyte.web.id/api/hardware/data";
 
-const char* BB_TOPIC = "onemed/bb";
-const char* TB_TOPIC = "onemed/tb";
+// ID unik perangkat ESP32
+const char* DEV_ID = "ESP32_ONEMED_01";
+
+
 
 static const char* TARGET_NAME      = "SENSSUN Growth";
 static const char* SERVICE_UUID     = "0000fff0-0000-1000-8000-00805f9b34fb";
@@ -57,7 +59,7 @@ static volatile bool bleScanRunning = false;
 
 // ══════════════════════ HTTP POST (Core 1) ════════════════════
 
-void postToServer(const char* topic, float value) {
+void postToServer(float weightKg, float heightCm) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("[HTTP] ⚠️  WiFi tidak terhubung.");
     return;
@@ -67,17 +69,14 @@ void postToServer(const char* topic, float value) {
   http.begin(SERVER_URL);
   http.addHeader("Content-Type", "application/json");
 
-  // Payload JSON — sesuaikan format dengan API server kamu
-  String payload = "{\"topic\":\"" + String(topic) +
-                   "\",\"value\":" + String(value, 2) + "}";
+  // Payload sesuai dengan schema backend
+  String payload = "{\"dev_id\":\"" + String(DEV_ID) + "\",\"bb\":" + String(weightKg, 2) + ",\"tb\":" + String(heightCm, 1) + "}";
 
   Serial.printf("[HTTP] 📤 POST → %s\n", payload.c_str());
 
   int httpCode = http.POST(payload);
-
   if (httpCode > 0) {
     Serial.printf("[HTTP] ✅ Response: %d\n", httpCode);
-    // String response = http.getString(); // uncomment jika mau lihat body
   } else {
     Serial.printf("[HTTP] ❌ Gagal: %s\n", http.errorToString(httpCode).c_str());
   }
@@ -233,12 +232,13 @@ void setup() {
 
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
-    delay(500); return;
+    delay(500);
+    return;
   }
 
   SensorData incoming;
   if (xQueueReceive(dataQueue, &incoming, pdMS_TO_TICKS(10)) == pdTRUE) {
-    postToServer(BB_TOPIC, incoming.weightKg);
-    postToServer(TB_TOPIC, incoming.heightCm);
+    // Kirim satu request yang berisi BB dan TB sekaligus
+    postToServer(incoming.weightKg, incoming.heightCm);
   }
 }

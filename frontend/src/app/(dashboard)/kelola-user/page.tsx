@@ -104,7 +104,7 @@ export default function KelolaUserPage() {
 
 
   return (
-    <div>
+    <div className="page-content" style={{ padding: '24px' }}>
       <div style={{ marginBottom: '22px' }}>
         <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>Kelola User</h1>
         <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '2px' }}>Manajemen akun akses petugas posyandu dan admin</p>
@@ -119,7 +119,7 @@ export default function KelolaUserPage() {
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>

@@ -194,7 +194,7 @@ export default function DataPengukuranPage() {
 
   // ─────────────────────────────────────────────────────────────
   return (
-    <div>
+    <div className="page-content" style={{ padding: '24px' }}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .mode-btn {
@@ -255,7 +255,7 @@ export default function DataPengukuranPage() {
         </div>
 
         {/* Table */}
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>
