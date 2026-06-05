@@ -40,7 +40,7 @@ const IconUsers = () => (
 const NAV = [
   { href: '/dashboard',       label: 'Dashboard',       Icon: IconDashboard  },
   { href: '/data-anak',       label: 'Data Anak',       Icon: IconChild      },
-  { href: '/data-pengukuran', label: 'Data Pengukuran', Icon: IconClipboard  },
+  { href: '/data-pengukuran-ws', label: 'Data Pengukuran', Icon: IconClipboard  },
   { href: '/cek-status-gizi', label: 'Cek Status Gizi', Icon: IconActivity   },
   { href: '/kelola-user',     label: 'Kelola User',     Icon: IconUsers      },
 ];
