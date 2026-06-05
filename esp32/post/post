@@ -1,20 +1,14 @@
 /**
  * ============================================================
- *  ESP32 DUAL-CORE — SENSSUN GROWTH BLE → WebSocket
- *  Framework : Arduino (ESP32 Arduino Core)
- * ============================================================
- *
- *  ARSITEKTUR DUAL-CORE:
- *    Core 0  → Task BLE (Scan, Connect, Notify)
- *    Core 1  → Arduino Main Loop (WiFi, WebSocket)
- *
- *  Data antar core dikirim via FreeRTOS Queue.
+ *  ESP32 DUAL-CORE — SENSSUN GROWTH BLE → HTTP POST
+ *  Core 0 : BLE Task
+ *  Core 1 : WiFi + HTTP POST
  * ============================================================
  */
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <WebSocketsClient.h>
+#include <HTTPClient.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
@@ -28,9 +22,8 @@
 const char* WIFI_SSID     = "TALAS 1";
 const char* WIFI_PASSWORD = "kitahebat";
 
-const char* WS_HOST = "server-iot-qbyte.qbyte.web.id";
-const int   WS_PORT = 443;
-const char* WS_PATH = "/ws";
+// Ganti dengan endpoint HTTP POST server kamu
+const char* SERVER_URL = "https://server-iot-qbyte.qbyte.web.id/api/data";
 
 const char* BB_TOPIC = "onemed/bb";
 const char* TB_TOPIC = "onemed/tb";
@@ -43,6 +36,7 @@ static const uint32_t SCAN_DURATION_SEC  = 10;
 static const uint32_t RECONNECT_DELAY_MS = 5000;
 
 // ══════════════════════ RTOS QUEUE ════════════════════════════
+
 struct SensorData {
   float weightKg;
   float heightCm;
@@ -51,51 +45,44 @@ QueueHandle_t dataQueue;
 
 // ══════════════════════ STATE GLOBAL ══════════════════════════
 
-WebSocketsClient webSocket;
-volatile bool wsConnected = false;
-
 static BLEClient*               pClient    = nullptr;
 static BLERemoteCharacteristic* pCharRX    = nullptr;
 static BLEAdvertisedDevice*     pTargetDev = nullptr;
 
-static bool bleDeviceFound = false;
-static bool bleConnected   = false;
-static bool bleDoConnect   = false;
-static bool bleDoScan      = true;
-static bool bleScanRunning = false;
+static volatile bool bleDeviceFound = false;
+static volatile bool bleConnected   = false;
+static volatile bool bleDoConnect   = false;
+static volatile bool bleDoScan      = true;
+static volatile bool bleScanRunning = false;
 
-// ══════════════════════ WEBSOCKET (Core 1) ════════════════════
+// ══════════════════════ HTTP POST (Core 1) ════════════════════
 
-void publishToWS(const char* topic, float value) {
-  if (!wsConnected) {
-    Serial.printf("[WS] ⚠️  Tidak terhubung — %s tidak terkirim.\n", topic);
+void postToServer(const char* topic, float value) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[HTTP] ⚠️  WiFi tidak terhubung.");
     return;
   }
-  String msg = String(topic) + "|" + String(value, 2);
-  webSocket.sendTXT(msg);
-  Serial.printf("[WS] 📤 Publish → %s\n", msg.c_str());
-}
 
-void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
-  switch (type) {
-    case WStype_CONNECTED:
-      wsConnected = true;
-      Serial.println("[WS] ✅ WebSocket terhubung");
-      webSocket.sendTXT("{\"action\":\"subscribe\",\"topic\":\"" + String(BB_TOPIC) + "\"}");
-      webSocket.sendTXT("{\"action\":\"subscribe\",\"topic\":\"" + String(TB_TOPIC) + "\"}");
-      break;
-    case WStype_DISCONNECTED:
-      wsConnected = false;
-      Serial.println("[WS] ❌ WebSocket terputus — auto-reconnect...");
-      break;
-    case WStype_TEXT:
-      Serial.printf("[WS] 📩 Pesan: %s\n", (char*)payload);
-      break;
-    case WStype_ERROR:
-      Serial.println("[WS] ⚠️  Error");
-      break;
-    default: break;
+  HTTPClient http;
+  http.begin(SERVER_URL);
+  http.addHeader("Content-Type", "application/json");
+
+  // Payload JSON — sesuaikan format dengan API server kamu
+  String payload = "{\"topic\":\"" + String(topic) +
+                   "\",\"value\":" + String(value, 2) + "}";
+
+  Serial.printf("[HTTP] 📤 POST → %s\n", payload.c_str());
+
+  int httpCode = http.POST(payload);
+
+  if (httpCode > 0) {
+    Serial.printf("[HTTP] ✅ Response: %d\n", httpCode);
+    // String response = http.getString(); // uncomment jika mau lihat body
+  } else {
+    Serial.printf("[HTTP] ❌ Gagal: %s\n", http.errorToString(httpCode).c_str());
   }
+
+  http.end();
 }
 
 // ══════════════════════ BLE (Core 0) ══════════════════════════
@@ -109,9 +96,7 @@ void parseAndEnqueue(uint8_t* data, size_t len) {
   float weightKg = rawWeight / 1000.0f;
   float heightCm = rawHeight / 10.0f;
 
-  if (weightKg < 0.1f || heightCm < 10.0f) {
-    return; // Abaikan paket standby
-  }
+  if (weightKg < 0.1f || heightCm < 10.0f) return;
 
   Serial.printf("[BLE] ⚖️  BB=%.2f kg  📏 TB=%.1f cm\n", weightKg, heightCm);
 
@@ -137,7 +122,7 @@ class BleClientCB : public BLEClientCallbacks {
     bleConnected   = false;
     bleDoScan      = true;
     bleScanRunning = false;
-    Serial.println("[BLE] ❌ Terputus — scan ulang...");
+    Serial.println("[BLE] ❌ BLE terputus — scan ulang...");
   }
 };
 
@@ -157,23 +142,22 @@ class BleScanCB : public BLEAdvertisedDeviceCallbacks {
 
 void scanDoneCB(BLEScanResults r) {
   bleScanRunning = false;
-  if (!bleDeviceFound) {
-    Serial.printf("[BLE] Tidak ditemukan. Retry...\n");
-  }
+  if (!bleDeviceFound) Serial.println("[BLE] Tidak ditemukan. Retry...");
 }
 
 bool connectToBLE() {
-  Serial.printf("[BLE] Menghubungkan ke %s...\n", pTargetDev->getAddress().toString().c_str());
+  if (!pTargetDev) return false;
+  Serial.printf("[BLE] Menghubungkan ke %s...\n",
+    pTargetDev->getAddress().toString().c_str());
 
-  if (pClient) { delete pClient; pClient = nullptr; }
+  if (pClient) { pClient->disconnect(); delete pClient; pClient = nullptr; }
+
   pClient = BLEDevice::createClient();
   pClient->setClientCallbacks(new BleClientCB());
 
   if (!pClient->connect(pTargetDev)) {
-    Serial.println("[BLE] ❌ Gagal connect.");
-    return false;
+    Serial.println("[BLE] ❌ Gagal connect."); return false;
   }
-
   auto* svc = pClient->getService(BLEUUID(SERVICE_UUID));
   if (!svc) { pClient->disconnect(); return false; }
 
@@ -181,22 +165,18 @@ bool connectToBLE() {
   if (!pCharRX || !pCharRX->canNotify()) { pClient->disconnect(); return false; }
 
   pCharRX->registerForNotify(notifyCallback);
-  Serial.println("[BLE] ✅ Menunggu data...");
+  Serial.println("[BLE] ✅ Menunggu data timbangan...");
   return true;
 }
 
 void taskBLE(void* param) {
   Serial.println("[BLE] Task mulai (Core 0).");
-  BLEDevice::init("ESP32_SENSSUN");
 
   for (;;) {
     if (bleDoScan && !bleScanRunning && !bleConnected) {
-      bleDoScan      = false;
-      bleDeviceFound = false;
-      bleDoConnect   = false;
-      bleScanRunning = true;
+      bleDoScan = false; bleDeviceFound = false;
+      bleDoConnect = false; bleScanRunning = true;
 
-      Serial.printf("[BLE] Scan '%s'...\n", TARGET_NAME);
       BLEScan* sc = BLEDevice::getScan();
       sc->clearResults();
       sc->setAdvertisedDeviceCallbacks(new BleScanCB(), true);
@@ -220,60 +200,45 @@ void taskBLE(void* param) {
     }
 
     if (bleConnected && pClient && !pClient->isConnected()) {
-      bleConnected   = false;
-      bleScanRunning = false;
-      bleDoScan      = true;
+      bleConnected = false; bleScanRunning = false; bleDoScan = true;
     }
 
-    vTaskDelay(pdMS_TO_TICKS(50));
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 
-// ══════════════════════ SETUP & LOOP (Core 1) ═════════════════
+// ══════════════════════ SETUP & LOOP ══════════════════════════
 
 void setup() {
   Serial.begin(115200);
   delay(500);
 
-  Serial.println("\n==============================================");
-  Serial.println("  SENSSUN GROWTH — DUAL CORE");
-  Serial.println("==============================================\n");
+  Serial.println("\n=== SENSSUN GROWTH — BLE + HTTP POST ===\n");
 
   dataQueue = xQueueCreate(5, sizeof(SensorData));
 
-  // ── 1. Konek WiFi (Main Loop / Core 1) ──
+  // Init BLE di setup() — WAJIB sebelum task dibuat
+  BLEDevice::init("ESP32_SENSSUN");
+
+  WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("🔌 Connecting to WiFi");
+  Serial.print("[WiFi] Connecting");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500); Serial.print(".");
   }
-  Serial.println("\n✅ WiFi connected");
+  Serial.printf("\n[WiFi] ✅ IP: %s\n", WiFi.localIP().toString().c_str());
 
-  // ── 2. Setup WebSocket (Sama persis seperti program sederhana) ──
-  webSocket.beginSSL(WS_HOST, WS_PORT, WS_PATH);
-  webSocket.onEvent(webSocketEvent);
-  webSocket.setReconnectInterval(5000);
-
-  // ── 3. Start BLE Task di Core 0 ──
-  xTaskCreatePinnedToCore(
-    taskBLE,       // Fungsi
-    "TaskBLE",     // Nama task
-    8192,          // Stack size
-    nullptr,
-    2,             // Priority
-    nullptr,
-    0              // Pinned to Core 0
-  );
+  xTaskCreatePinnedToCore(taskBLE, "TaskBLE", 8192, nullptr, 1, nullptr, 0);
 }
 
 void loop() {
-  // Jalankan WebSocket di loop utama (Core 1) persis seperti program sederhana
-  webSocket.loop();
+  if (WiFi.status() != WL_CONNECTED) {
+    delay(500); return;
+  }
 
-  // Cek apakah ada data dari BLE (Core 0)
   SensorData incoming;
-  if (xQueueReceive(dataQueue, &incoming, 0) == pdTRUE) {
-    publishToWS(BB_TOPIC, incoming.weightKg);
-    publishToWS(TB_TOPIC, incoming.heightCm);
+  if (xQueueReceive(dataQueue, &incoming, pdMS_TO_TICKS(10)) == pdTRUE) {
+    postToServer(BB_TOPIC, incoming.weightKg);
+    postToServer(TB_TOPIC, incoming.heightCm);
   }
 }
