@@ -4,11 +4,17 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 const BREADCRUMB: Record<string, string> = {
-  '/dashboard':         'Dashboard',
-  '/data-anak':         'Data Anak',
-  '/data-pengukuran':   'Data Pengukuran',
-  '/cek-status-gizi':   'Cek Status Gizi',
+  '/dashboard':       'Dashboard',
+  '/data-anak':       'Data Anak',
+  '/data-pengukuran': 'Data Pengukuran',
+  '/cek-status-gizi': 'Cek Status Gizi',
 };
+
+const IconBell = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+);
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
@@ -23,52 +29,97 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router]);
 
   const breadcrumb = BREADCRUMB[pathname] || 'Dashboard';
+  const initials = (user?.nama_lengkap || user?.username || 'P')[0].toUpperCase();
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
       <main style={{
-        marginLeft: '220px',
+        marginLeft: '240px',
         flex: 1,
-        background: '#f1f5f9',
+        background: '#f8fafb',
         minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         {/* Top Header */}
         <header style={{
-          background: 'white',
-          borderBottom: '1px solid #e2e8f0',
-          padding: '14px 28px',
+          background: '#ffffff',
+          borderBottom: '1px solid #e8edf2',
+          padding: '0 28px',
+          height: '60px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          position: 'sticky', top: 0, zIndex: 50,
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          boxShadow: '0 1px 3px rgba(15,23,42,0.05)',
         }}>
-          <div>
-            <p style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Halaman</p>
-            <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>
-              / {breadcrumb}
-            </h2>
+          {/* Breadcrumb */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Posyandu</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
+              {breadcrumb}
+            </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '34px', height: '34px', borderRadius: '50%',
-              background: '#2563eb', color: 'white',
+
+          {/* Right side */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Notification bell */}
+            <button style={{
+              width: '36px', height: '36px',
+              borderRadius: '9px',
+              border: '1px solid #e8edf2',
+              background: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: '0.9rem',
-            }}>
-              {(user?.nama_lengkap || user?.username || 'A')[0].toUpperCase()}
-            </div>
-            <div>
-              <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>
-                {user?.nama_lengkap || user?.username || 'Pengguna'}
-              </p>
-              <p style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Petugas Posyandu</p>
+              cursor: 'pointer',
+              color: '#64748b',
+              transition: 'background 0.12s, color 0.12s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#eff6ff';
+              e.currentTarget.style.color = '#2563eb';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = '#fff';
+              e.currentTarget.style.color = '#64748b';
+            }}
+            >
+              <IconBell />
+            </button>
+
+            {/* Divider */}
+            <div style={{ width: '1px', height: '28px', background: '#e8edf2' }}/>
+
+            {/* User info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '34px', height: '34px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+                color: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, fontSize: '0.85rem',
+                boxShadow: '0 2px 8px rgba(13,148,136,0.35)',
+              }}>
+                {initials}
+              </div>
+              <div>
+                <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', lineHeight: 1.2 }}>
+                  {user?.nama_lengkap || user?.username || 'Pengguna'}
+                </p>
+                <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '1px' }}>Petugas Posyandu</p>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <div style={{ padding: '24px 28px' }}>
+        <div style={{ padding: '28px', flex: 1 }}>
           {children}
         </div>
       </main>

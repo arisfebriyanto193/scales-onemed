@@ -227,50 +227,60 @@ export default function DataPengukuranPage() {
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .mode-btn {
-          display: flex; align-items: center; gap: 6px;
-          padding: 8px 18px; border-radius: 9px; font-size: 0.85rem;
-          font-weight: 600; border: 2px solid transparent;
-          cursor: pointer; transition: all .18s;
+          display: flex; align-items: center; gap: 7px;
+          padding: 8px 16px; border-radius: 8px; font-size: 0.83rem;
+          font-weight: 600; border: 1.5px solid transparent;
+          cursor: pointer; transition: all .18s; font-family: inherit;
         }
         .mode-btn.active-manual {
-          background: #1e40af; color: #fff; border-color: #1e40af;
+          background: #1e293b; color: #fff; border-color: #1e293b;
         }
         .mode-btn.active-auto {
-          background: #065f46; color: #fff; border-color: #059669;
+          background: #2563eb; color: #fff; border-color: #2563eb;
+          box-shadow: 0 3px 10px rgba(37,99,235,0.25);
         }
         .mode-btn.inactive {
-          background: #f1f5f9; color: #64748b; border-color: #e2e8f0;
+          background: #f8fafb; color: #64748b; border-color: #e8edf2;
         }
-        .mode-btn.inactive:hover { background: #e2e8f0; }
+        .mode-btn.inactive:hover { background: #f1f5f9; color: #374151; }
         .auto-field input[type="number"] {
-          background: #f0fdf4 !important;
-          color: #065f46 !important;
+          background: #eff6ff !important;
+          color: #1d4ed8 !important;
           font-weight: 700 !important;
-          border-color: #6ee7b7 !important;
+          border-color: #93c5fd !important;
           cursor: not-allowed;
         }
         @keyframes data-flash {
-          0%   { box-shadow: 0 0 0 0 rgba(16,185,129,.5); }
-          70%  { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
-          100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+          0%   { box-shadow: 0 0 0 0 rgba(37,99,235,.4); }
+          70%  { box-shadow: 0 0 0 6px rgba(37,99,235,0); }
+          100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
         }
         .auto-field input.has-data {
           animation: data-flash 0.6s ease;
         }
       `}</style>
 
-      <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: '#1e293b' }}>
-        Data Pengukuran
-      </h1>
+      <div style={{ marginBottom: '22px' }}>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>Data Pengukuran</h1>
+        <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '2px' }}>Riwayat pengukuran berat dan tinggi badan anak</p>
+      </div>
 
       <div className="card">
         {/* Toolbar */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <input className="input-penting" placeholder="Cari nama anak..." style={{ maxWidth: '260px' }}
-            value={search} onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && fetchData(search)} />
-          <button className="btn-primary" onClick={() => fetchData(search)}>🔍 Cari</button>
-          <button className="btn-primary" onClick={openAdd} style={{ marginLeft: 'auto' }}>+ Tambah</button>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ position: 'relative', maxWidth: '280px', flex: '1 1 200px' }}>
+            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input className="input-penting" placeholder="Cari nama anak..." style={{ paddingLeft: '36px' }}
+              value={search} onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && fetchData(search)} />
+          </div>
+          <button className="btn-ghost" onClick={() => fetchData(search)}>Cari</button>
+          <button className="btn-primary" onClick={openAdd} style={{ marginLeft: 'auto' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Pengukuran
+          </button>
         </div>
 
         {/* Table */}
@@ -305,8 +315,10 @@ export default function DataPengukuranPage() {
                   <td>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }}
-                        onClick={() => openEdit(m)}>✏️ Edit</button>
-                      <button className="btn-danger" onClick={() => handleDelete(m.id)}>🗑️</button>
+                        onClick={() => openEdit(m)}>Edit</button>
+                      <button className="btn-danger" style={{ padding: '5px 10px' }} onClick={() => handleDelete(m.id)}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
