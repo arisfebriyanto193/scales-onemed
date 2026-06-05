@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import api from '@/lib/api';
 
 // ─── Konstanta WebSocket ───────────────────────────────────────
-const WS_URL   = '';
+const WS_URL   = 'wss://server-iot-qbyte.qbyte.web.id/ws';
 const BB_TOPIC = 'onemed/bb';
 const TB_TOPIC = 'onemed/tb';
 
