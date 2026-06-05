@@ -62,15 +62,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           zIndex: 50,
           boxShadow: '0 1px 3px rgba(15,23,42,0.05)',
         }}>
-          {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Posyandu</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
-              {breadcrumb}
-            </span>
+          {/* Left side: Hamburger + Breadcrumb */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {/* Hamburger — hanya tampil di mobile */}
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Buka menu navigasi"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6"  x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+
+            {/* Breadcrumb */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Posyandu</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
+                {breadcrumb}
+              </span>
+            </div>
           </div>
 
           {/* Right side */}
