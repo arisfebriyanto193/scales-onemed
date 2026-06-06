@@ -27,24 +27,26 @@
 #include <WebSocketsClient.h>
 
 // ─────────────────── Konfigurasi WiFi ───────────────────────
-const char* ssid     = "esp1";        // Ganti dengan SSID WiFi Anda
-const char* password = "12345674";    // Ganti dengan password WiFi Anda
+const char* ssid     = "TALAS 1";        // Ganti dengan SSID WiFi Anda
+const char* password = "kitahebat";    // Ganti dengan password WiFi Anda
 
 // ─────────────────── Konfigurasi WebSocket ──────────────────
-const char* ws_host = "server-mqtt-js.qbyte.web.id";
-const char* ws_path = "/";
+const char* ws_host = "penting-be.qbyte.web.id";
+const char* ws_path = "/ws";
 const int   ws_port = 443;            // SSL/WSS
 
 // ─────────────────── Topic WebSocket ────────────────────────
-const char* TOPIC_BERAT  = "USR_687de6987184f/snr_688038bc";
-const char* TOPIC_TINGGI = "USR_687de6987184f/snr_68803df2";
-const char* TOPIC_BMI    = "USR_687de6987184f/snr_bmi";       // opsional
+const char* TOPIC_BERAT  = "abcd/bb";
+const char* TOPIC_TINGGI = "abcd/tb";
+const char* TOPIC_BMI    = "abcd/bmi";       // opsional
+
 
 // ─────────────────── Konfigurasi UART dari espA ─────────────
 // Serial2: RX=GPIO16, TX=GPIO17 (TX tidak aktif di espB ini)
 #define UART_BAUD   115200
 #define UART_RX_PIN 16
 #define UART_TX_PIN 17
+
 
 // ─────────────────── State ──────────────────────────────────
 WebSocketsClient webSocket;
@@ -108,7 +110,7 @@ void sendToWebSocket(float berat, float tinggi, float bmi) {
   }
 
   // Kirim berat (format: "topic|value")
-  String msgBerat = String(TOPIC_BERAT) + "|" + String(berat, 1);
+  String msgBerat = String(TOPIC_BERAT) + "|" + String(berat, 3);
   webSocket.sendTXT(msgBerat);
   Serial.println("📤 [WS] " + msgBerat);
 
@@ -181,7 +183,7 @@ void loop() {
 
         float berat = 0, tinggi = 0, bmi = 0;
         if (parseUartLine(uartBuffer, berat, tinggi, bmi)) {
-          Serial.printf("[PARSE] Berat=%.1f kg | Tinggi=%.1f cm | BMI=%.1f\n",
+          Serial.printf("[PARSE] Berat=%.3f kg | Tinggi=%.1f cm | BMI=%.1f\n",
                         berat, tinggi, bmi);
           sendToWebSocket(berat, tinggi, bmi);
         } else {

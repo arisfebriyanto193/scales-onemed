@@ -72,7 +72,7 @@ void parseAndSend(uint8_t* data, size_t len) {
   float weightKg = rawWeight / 1000.0f;
   float heightCm = rawHeight / 10.0f;
 
-  Serial.printf("Berat  : %.1f kg\n", weightKg);
+  Serial.printf("Berat  : %.3f kg\n", weightKg);
   Serial.printf("Tinggi : %.1f cm\n", heightCm);
 
   float bmi = 0.0f;
@@ -83,8 +83,8 @@ void parseAndSend(uint8_t* data, size_t len) {
   }
 
   // ── Kirim ke espB via UART Serial2 ─────────────────────
-  // Format: "BERAT:xx.x;TINGGI:xxx.x;BMI:xx.x\n"
-  String msg = "BERAT:" + String(weightKg, 1) +
+  // Format: "BERAT:xx.xxx;TINGGI:xxx.x;BMI:xx.x\n"
+  String msg = "BERAT:" + String(weightKg, 3) +
                ";TINGGI:" + String(heightCm, 1) +
                ";BMI:" + String(bmi, 1) + "\n";
 
