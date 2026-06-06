@@ -23,7 +23,7 @@ const Field = ({ label, children: fc }: { label: string; children: React.ReactNo
 );
 
 // ─── Konfigurasi WebSocket Server ────────────────────────────
-const WS_URL        = 'wss://server-iot-qbyte.qbyte.web.id/ws';
+const WS_URL        = process.env.NEXT_PUBLIC_WS ?? 'ws://localhost:5000/ws';
 const TOPIC_BERAT   = 'abcd/bb';   // payload = nilai berat (kg)
 const TOPIC_TINGGI  = 'abcd/tb';   // payload = nilai tinggi (cm)
 
