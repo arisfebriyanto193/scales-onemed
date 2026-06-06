@@ -361,7 +361,7 @@ export default function DataPengukuranPage() {
 
             {/* Header */}
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>
-              {modal === 'add' ? '+ Tambah Pengukuran' : '✏️ Edit Pengukuran'}
+              {modal === 'add' ? '+ Tambah Pengukuran' : 'Edit Pengukuran'}
             </h3>
 
             {/* ── Toggle Auto / Manual ── */}
@@ -374,12 +374,12 @@ export default function DataPengukuranPage() {
               <button
                 className={`mode-btn ${inputMode === 'manual' ? 'active-manual' : 'inactive'}`}
                 onClick={() => setInputMode('manual')}>
-                ✍️ Manual
+                 Manual
               </button>
               <button
                 className={`mode-btn ${inputMode === 'auto' ? 'active-auto' : 'inactive'}`}
                 onClick={() => setInputMode('auto')}>
-                📡 Auto (IoT)
+                 Auto (IoT)
               </button>
             </div>
 
