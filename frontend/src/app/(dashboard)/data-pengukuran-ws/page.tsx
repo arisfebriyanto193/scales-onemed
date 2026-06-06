@@ -63,6 +63,7 @@ function useScaleWS(enabled: boolean) {
       ws.onopen = () => {
         if (destroyed) { ws.close(); return; }
         setWsStatus('connected');
+        console.log("WS connect", WS_URL);
 
         // Subscribe kedua topik
         ws.send(JSON.stringify({ action: 'subscribe', topic: TOPIC_BERAT }));

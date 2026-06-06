@@ -14,7 +14,8 @@ frontend/.yarn/*
 !frontend/.yarn/plugins
 !frontend/.yarn/releases
 !frontend/.yarn/versions
-
+up.sh
+desain-web
 # testing
 frontend/coverage
 backend/coverage

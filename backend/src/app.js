@@ -30,7 +30,7 @@ const allowedOrigins = process.env.FRONTEND_URL
 const wsAllowedOrigins = [
   ...allowedOrigins,
   'https://www.qbyte.web.id',
-  'https://pnting.qbyte.web.id',
+  'https://penting.qbyte.web.id',
 ];
 
 app.use(cors({
