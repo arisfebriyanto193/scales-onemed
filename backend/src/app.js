@@ -29,9 +29,8 @@ const allowedOrigins = process.env.FRONTEND_URL
 
 const wsAllowedOrigins = [
   ...allowedOrigins,
-  'https://server-iot.qbyte.web.id',
-  'https://iot-v2.qbyte.web.id',
-  'https://testopikmqtt.qbyte.web.id',
+  'https://www.qbyte.web.id',
+  'https://pnting.qbyte.web.id',
 ];
 
 app.use(cors({
