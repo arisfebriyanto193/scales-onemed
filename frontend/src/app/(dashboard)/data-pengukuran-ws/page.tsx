@@ -230,19 +230,28 @@ export default function DataPengukuranPage() {
 
   // ─── Status WS badge ─────────────────────────────────────────
   const wsBadge = () => {
-    const map = {
-      connecting:   { bg: '#fef3c7', color: '#92400e', dot: '#f59e0b', text: 'Menyambungkan ke server' },
-      connected:    { bg: '#d1fae5', color: '#065f46', dot: '#10b981', text: 'Terhubung — menerima data real-time' },
-      disconnected: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444', text: 'Alat tidak terhubung' },
-    }[wsStatus];
+    let statusKey = wsStatus as string;
+    if (wsStatus === 'connected' && (!wsBb || !wsTb)) {
+      statusKey = 'waiting_data';
+    }
+
+    const map: Record<string, { bg: string, color: string, dot: string, text: string }> = {
+      connecting:   { bg: '#fef3c7', color: '#92400e', dot: '#f59e0b', text: 'Menyambungkan ke server...' },
+      waiting_data: { bg: '#e0f2fe', color: '#0369a1', dot: '#38bdf8', text: 'Terhubung ke server — Menunggu koneksi timbangan...' },
+      connected:    { bg: '#d1fae5', color: '#065f46', dot: '#10b981', text: 'Timbangan terhubung — Menerima data' },
+      disconnected: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444', text: 'Server tidak terhubung' },
+    };
+
+    const currentMap = map[statusKey];
+
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px',
-        background: map.bg, color: map.color, padding: '8px 12px',
+        background: currentMap.bg, color: currentMap.color, padding: '8px 12px',
         borderRadius: '8px', fontSize: '0.8rem', fontWeight: 500, marginBottom: '12px' }}>
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: map.dot,
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: currentMap.dot,
           display: 'inline-block',
-          ...(wsStatus === 'connecting' ? { animation: 'pulse 1.2s infinite' } : {}) }} />
-        📡 Status Alat: {map.text}
+          ...(statusKey === 'connecting' || statusKey === 'waiting_data' ? { animation: 'pulse 1.2s infinite' } : {}) }} />
+        📡 Status Alat: {currentMap.text}
       </div>
     );
   };
