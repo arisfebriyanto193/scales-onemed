@@ -1,7 +1,78 @@
 'use client';
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
+
+// ─── Konfigurasi WebSocket ─────────────────────────────────────
+const WS_URL      = process.env.NEXT_PUBLIC_WS ?? 'ws://localhost:5000/ws';
+const TOPIC_IDCARD = 'abcd/idcard';
+
+// ─── Hook: subscribe abcd/idcard saat modal terbuka ───────────
+// Mengembalikan UID terakhir yang terbaca. Field tetap bisa diedit manual.
+function useRfidWS(enabled: boolean, onUid: (uid: string) => void) {
+  const wsRef       = useRef<WebSocket | null>(null);
+  const reconnRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [status, setStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
+
+  useEffect(() => {
+    if (!enabled) {
+      if (wsRef.current)   { wsRef.current.close(); wsRef.current = null; }
+      if (reconnRef.current) clearTimeout(reconnRef.current);
+      setStatus('idle');
+      return;
+    }
+
+    let destroyed = false;
+    const connect = () => {
+      if (destroyed) return;
+      setStatus('connecting');
+      const ws = new WebSocket(WS_URL);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        if (destroyed) { ws.close(); return; }
+        setStatus('connected');
+        ws.send(JSON.stringify({ action: 'subscribe', topic: TOPIC_IDCARD }));
+      };
+
+      ws.onmessage = (event) => {
+        if (destroyed) return;
+        const raw = typeof event.data === 'string' ? event.data : '';
+        let uid = '';
+
+        // Format "abcd/idcard|XXXXXXXX"
+        if (raw.includes('|')) {
+          const [topic, val] = raw.split('|');
+          if (topic.trim() === TOPIC_IDCARD) uid = val.trim().toUpperCase();
+        } else {
+          // Format JSON {"topic":"abcd/idcard","payload":"XXXXXXXX"}
+          try {
+            const msg = JSON.parse(raw);
+            if (msg.topic === TOPIC_IDCARD) uid = String(msg.payload ?? '').toUpperCase();
+          } catch { /* abaikan */ }
+        }
+
+        if (uid) onUid(uid);
+      };
+
+      ws.onerror = () => { if (!destroyed) setStatus('connecting'); };
+      ws.onclose = () => {
+        if (destroyed) return;
+        setStatus('connecting');
+        reconnRef.current = setTimeout(connect, 3000);
+      };
+    };
+
+    connect();
+    return () => {
+      destroyed = true;
+      if (reconnRef.current) clearTimeout(reconnRef.current);
+      if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+    };
+  }, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return { status };
+}
 
 interface Child {
   id: number; nik: string; nama_anak: string; jenis_kelamin: string;
@@ -14,7 +85,7 @@ const EMPTY: Omit<Child, 'id'> = {
   rfid_uid: '',
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({ label, children }: { label: React.ReactNode; children: React.ReactNode }) => (
   <div style={{ marginBottom: '14px' }}>
     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '5px', color: '#374151' }}>{label}</label>
     {children}
@@ -37,6 +108,22 @@ function DataAnakInner() {
 
   // ── Banner: kartu RFID dari redirect data-pengukuran-ws ──────
   const [rfidBanner, setRfidBanner] = useState<string | null>(null);
+
+  // ── RFID via WebSocket (aktif saat modal terbuka) ────────────
+  const [rfidFlash, setRfidFlash] = useState(false);   // animasi flash saat UID baru masuk
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { status: wsStatus } = useRfidWS(
+    modal !== null,   // aktif hanya saat modal terbuka
+    (uid) => {
+      setForm(prev => ({ ...prev, rfid_uid: uid }));
+      setRfidFlash(true);
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setRfidFlash(false), 800);
+    }
+  );
+
+  useEffect(() => () => { if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
 
   const fetchData = async (q = '') => {
     setLoading(true);
@@ -68,6 +155,7 @@ function DataAnakInner() {
     setForm({ ...EMPTY });
     setEditId(null);
     setError('');
+    setRfidFlash(false);
     setModal('add');
   };
 
@@ -268,8 +356,25 @@ function DataAnakInner() {
               </Field>
             </div>
 
-            {/* Field RFID UID */}
-            <Field label="RFID UID (Opsional)">
+            {/* Field RFID UID + status WS */}
+            <Field label={
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>RFID UID (Opsional)</span>
+                {/* Status indikator WS */}
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  fontSize: '0.72rem', fontWeight: 500,
+                  color: wsStatus === 'connected' ? '#059669' : wsStatus === 'connecting' ? '#d97706' : '#94a3b8',
+                }}>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: '50%', display: 'inline-block',
+                    background: wsStatus === 'connected' ? '#10b981' : wsStatus === 'connecting' ? '#f59e0b' : '#cbd5e1',
+                    ...(wsStatus === 'connecting' ? { animation: 'pulse 1.2s infinite' } : {}),
+                  }} />
+                  {wsStatus === 'connected' ? '📡 Siap scan kartu' : wsStatus === 'connecting' ? 'Menyambung...' : ''}
+                </span>
+              </div>
+            }>
               <div style={{ position: 'relative' }}>
                 <span style={{
                   position: 'absolute', left: '10px', top: '50%',
@@ -277,20 +382,34 @@ function DataAnakInner() {
                 }}>🃏</span>
                 <input
                   className="input-penting"
-                  placeholder="Contoh: A3B4C5D6 (scan kartu RFID)"
+                  placeholder="Scan kartu RFID atau ketik manual"
                   maxLength={20}
                   style={{
                     paddingLeft: '30px',
                     fontFamily: 'monospace',
-                    letterSpacing: '0.05em',
-                    ...(form.rfid_uid ? { borderColor: '#a78bfa', background: '#faf5ff' } : {}),
+                    letterSpacing: '0.08em',
+                    transition: 'box-shadow 0.2s, border-color 0.2s',
+                    ...(rfidFlash
+                      ? { borderColor: '#7c3aed', background: '#f5f3ff',
+                          boxShadow: '0 0 0 3px rgba(124,58,237,0.25)' }
+                      : form.rfid_uid
+                        ? { borderColor: '#a78bfa', background: '#faf5ff' }
+                        : {}),
                   }}
                   value={form.rfid_uid || ''}
                   onChange={e => setForm({ ...form, rfid_uid: e.target.value.toUpperCase() })}
                 />
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
-                UID akan disimpan dalam format huruf besar (uppercase). Biarkan kosong jika belum ada kartu RFID.
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Tap kartu RFID ke reader untuk mengisi otomatis, atau ketik manual.</span>
+                {form.rfid_uid && (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, rfid_uid: '' })}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer',
+                      fontSize: '0.72rem', padding: 0, fontFamily: 'inherit' }}
+                  >✕ Hapus</button>
+                )}
               </div>
             </Field>
 
