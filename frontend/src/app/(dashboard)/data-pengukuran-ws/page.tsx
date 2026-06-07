@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
 // ─── Tipe Data ────────────────────────────────────────────────
@@ -24,30 +25,41 @@ const Field = ({ label, children: fc }: { label: string; children: React.ReactNo
 
 // ─── Konfigurasi WebSocket Server ────────────────────────────
 const WS_URL        = process.env.NEXT_PUBLIC_WS ?? 'ws://localhost:5000/ws';
-const TOPIC_BERAT   = 'abcd/bb';   // payload = nilai berat (kg)
-const TOPIC_TINGGI  = 'abcd/tb';   // payload = nilai tinggi (cm)
+const TOPIC_BERAT     = 'abcd/bb';
+const TOPIC_TINGGI    = 'abcd/tb';
+const TOPIC_IDCARD    = 'abcd/idcard';
+const TOPIC_CHILDNAME = 'abcd/childname';
 
-// ─── Hook: WebSocket untuk BB & TB ───────────────────────────
-// Menggantikan polling REST API.
-// Terima pesan format: "topic|value"  atau JSON {"topic":"...", "payload":...}
-function useScaleWS(enabled: boolean) {
+// ─── Notifikasi RFID ─────────────────────────────────────────
+interface RfidNotif {
+  type: 'found' | 'not_found';
+  uid: string;
+  childName?: string;
+  childId?: number;
+}
+
+// ─── Hook: WebSocket untuk BB, TB & RFID ─────────────────────
+function useScaleWS(
+  enabled: boolean,
+  onRfidFound: (childId: number, childName: string, uid: string) => void,
+  onRfidNotFound: (uid: string) => void,
+  sendChildNameFn: (name: string) => void
+) {
   const [bb, setBb] = useState<string>('');
   const [tb, setTb] = useState<string>('');
   const [wsStatus, setWsStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Expose send function for childname broadcast
+  const sendChildName = useRef<(name: string) => void>(() => {});
+
   useEffect(() => {
     if (!enabled) {
-      // Tutup koneksi saat mode bukan auto
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
+      if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
       if (reconnectRef.current) clearTimeout(reconnectRef.current);
       setWsStatus('disconnected');
-      setBb('');
-      setTb('');
+      setBb(''); setTb('');
       return;
     }
 
@@ -60,27 +72,55 @@ function useScaleWS(enabled: boolean) {
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
 
+      // Expose send function
+      sendChildName.current = (name: string) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(`${TOPIC_CHILDNAME}|${name}`);
+        }
+      };
+
       ws.onopen = () => {
         if (destroyed) { ws.close(); return; }
         setWsStatus('connected');
-        console.log("WS connect", WS_URL);
-
-        // Subscribe kedua topik
         ws.send(JSON.stringify({ action: 'subscribe', topic: TOPIC_BERAT }));
         ws.send(JSON.stringify({ action: 'subscribe', topic: TOPIC_TINGGI }));
+        ws.send(JSON.stringify({ action: 'subscribe', topic: TOPIC_IDCARD }));
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = async (event) => {
         if (destroyed) return;
         const raw: string = typeof event.data === 'string' ? event.data : '';
 
-        // ── Format 1: "topic|value"  (dikirim espB)
+        // ── Format 1: "topic|value"
         if (raw.includes('|')) {
-          const [topic, value] = raw.split('|');
-          const val = parseFloat(value);
-          if (!isNaN(val)) {
-            if (topic.trim() === TOPIC_BERAT)  setBb(val.toFixed(2));
-            if (topic.trim() === TOPIC_TINGGI) setTb(val.toFixed(1));
+          const sepIdx = raw.indexOf('|');
+          const topic  = raw.substring(0, sepIdx).trim();
+          const value  = raw.substring(sepIdx + 1).trim();
+
+          if (topic === TOPIC_BERAT) {
+            const val = parseFloat(value);
+            if (!isNaN(val)) setBb(val.toFixed(2));
+          } else if (topic === TOPIC_TINGGI) {
+            const val = parseFloat(value);
+            if (!isNaN(val)) setTb(val.toFixed(1));
+          } else if (topic === TOPIC_IDCARD) {
+            // ── RFID: lookup anak berdasarkan UID ──────────
+            const uid = value.toUpperCase();
+            try {
+              const res = await api.get(`/children/by-rfid/${uid}`);
+              const child = res.data.data;
+              onRfidFound(child.id, child.nama_anak, uid);
+              // Kirim nama anak balik ke OLED via WS
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(`${TOPIC_CHILDNAME}|${child.nama_anak}`);
+              }
+            } catch {
+              onRfidNotFound(uid);
+              // Beritahu OLED kartu tidak dikenal
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(`${TOPIC_CHILDNAME}|Tidak Terdaftar`);
+              }
+            }
           }
           return;
         }
@@ -92,24 +132,37 @@ function useScaleWS(enabled: boolean) {
           const payload = msg.payload ?? msg.value ?? null;
           if (payload === null) return;
 
-          const val = parseFloat(String(payload));
-          if (isNaN(val)) return;
-
-          if (topic === TOPIC_BERAT)  setBb(val.toFixed(2));
-          if (topic === TOPIC_TINGGI) setTb(val.toFixed(1));
+          if (topic === TOPIC_BERAT) {
+            const val = parseFloat(String(payload));
+            if (!isNaN(val)) setBb(val.toFixed(2));
+          } else if (topic === TOPIC_TINGGI) {
+            const val = parseFloat(String(payload));
+            if (!isNaN(val)) setTb(val.toFixed(1));
+          } else if (topic === TOPIC_IDCARD) {
+            const uid = String(payload).toUpperCase();
+            try {
+              const res = await api.get(`/children/by-rfid/${uid}`);
+              const child = res.data.data;
+              onRfidFound(child.id, child.nama_anak, uid);
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(`${TOPIC_CHILDNAME}|${child.nama_anak}`);
+              }
+            } catch {
+              onRfidNotFound(uid);
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(`${TOPIC_CHILDNAME}|Tidak Terdaftar`);
+              }
+            }
+          }
         } catch {
           // bukan JSON, abaikan
         }
       };
 
-      ws.onerror = () => {
-        if (!destroyed) setWsStatus('connecting');
-      };
-
+      ws.onerror = () => { if (!destroyed) setWsStatus('connecting'); };
       ws.onclose = () => {
         if (destroyed) return;
         setWsStatus('connecting');
-        // Reconnect otomatis setelah 3 detik
         reconnectRef.current = setTimeout(connect, 3000);
       };
     };
@@ -119,10 +172,7 @@ function useScaleWS(enabled: boolean) {
     return () => {
       destroyed = true;
       if (reconnectRef.current) clearTimeout(reconnectRef.current);
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
+      if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
     };
   }, [enabled]);
 
@@ -131,6 +181,8 @@ function useScaleWS(enabled: boolean) {
 
 // ─── Komponen Utama ───────────────────────────────────────────
 export default function DataPengukuranPage() {
+  const router = useRouter();
+
   const [data, setData]         = useState<Measurement[]>([]);
   const [children, setChildren] = useState<Child[]>([]);
   const [search, setSearch]     = useState('');
@@ -145,8 +197,31 @@ export default function DataPengukuranPage() {
   const [inputMode, setInputMode] = useState<'manual' | 'auto'>('manual');
   const isAuto = inputMode === 'auto' && modal !== null;
 
-  // ── WebSocket (hanya aktif saat mode auto & modal terbuka) ───
-  const { bb: wsBb, tb: wsTb, wsStatus } = useScaleWS(isAuto);
+  // ── RFID Notification ────────────────────────────────────────
+  const [rfidNotif, setRfidNotif] = useState<RfidNotif | null>(null);
+  const rfidTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleRfidFound = (childId: number, childName: string, uid: string) => {
+    // Auto-pilih anak di form
+    setForm(prev => ({ ...prev, child_id: String(childId) }));
+    setRfidNotif({ type: 'found', uid, childName, childId });
+    if (rfidTimerRef.current) clearTimeout(rfidTimerRef.current);
+    rfidTimerRef.current = setTimeout(() => setRfidNotif(null), 6000);
+  };
+
+  const handleRfidNotFound = (uid: string) => {
+    setRfidNotif({ type: 'not_found', uid });
+    if (rfidTimerRef.current) clearTimeout(rfidTimerRef.current);
+    rfidTimerRef.current = setTimeout(() => setRfidNotif(null), 10000);
+  };
+
+  // ── WebSocket ────────────────────────────────────────────────
+  const { bb: wsBb, tb: wsTb, wsStatus } = useScaleWS(
+    isAuto,
+    handleRfidFound,
+    handleRfidNotFound,
+    () => {}
+  );
 
   // Sync nilai WS → form saat mode auto
   useEffect(() => {
@@ -158,6 +233,9 @@ export default function DataPengukuranPage() {
       }));
     }
   }, [wsBb, wsTb, isAuto]);
+
+  // Cleanup RFID timer
+  useEffect(() => () => { if (rfidTimerRef.current) clearTimeout(rfidTimerRef.current); }, []);
 
   // ─── Fetch Data ───────────────────────────────────────────────
   const fetchData = async (q = '') => {
@@ -180,6 +258,7 @@ export default function DataPengukuranPage() {
     setEditId(null);
     setError('');
     setInputMode('manual');
+    setRfidNotif(null);
     setModal('add');
   };
 
@@ -194,12 +273,14 @@ export default function DataPengukuranPage() {
     setEditId(m.id);
     setError('');
     setInputMode('manual');
+    setRfidNotif(null);
     setModal('edit');
   };
 
   const closeModal = () => {
     setModal(null);
     setInputMode('manual');
+    setRfidNotif(null);
   };
 
   // ─── Save ─────────────────────────────────────────────────────
@@ -231,27 +312,86 @@ export default function DataPengukuranPage() {
   // ─── Status WS badge ─────────────────────────────────────────
   const wsBadge = () => {
     let statusKey = wsStatus as string;
-    if (wsStatus === 'connected' && (!wsBb || !wsTb)) {
-      statusKey = 'waiting_data';
-    }
+    if (wsStatus === 'connected' && (!wsBb || !wsTb)) statusKey = 'waiting_data';
 
-    const map: Record<string, { bg: string, color: string, dot: string, text: string }> = {
+    const map: Record<string, { bg: string; color: string; dot: string; text: string }> = {
       connecting:   { bg: '#fef3c7', color: '#92400e', dot: '#f59e0b', text: 'Menyambungkan ke server...' },
-      waiting_data: { bg: '#e0f2fe', color: '#0369a1', dot: '#38bdf8', text: 'Terhubung ke server — Menunggu koneksi timbangan...' },
+      waiting_data: { bg: '#e0f2fe', color: '#0369a1', dot: '#38bdf8', text: 'Terhubung — Menunggu timbangan & RFID...' },
       connected:    { bg: '#d1fae5', color: '#065f46', dot: '#10b981', text: 'Timbangan terhubung — Menerima data' },
       disconnected: { bg: '#fee2e2', color: '#991b1b', dot: '#ef4444', text: 'Server tidak terhubung' },
     };
-
-    const currentMap = map[statusKey];
-
+    const cm = map[statusKey];
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px',
-        background: currentMap.bg, color: currentMap.color, padding: '8px 12px',
-        borderRadius: '8px', fontSize: '0.8rem', fontWeight: 500, marginBottom: '12px' }}>
-        <span style={{ width: 8, height: 8, borderRadius: '50%', background: currentMap.dot,
+        background: cm.bg, color: cm.color, padding: '8px 12px',
+        borderRadius: '8px', fontSize: '0.8rem', fontWeight: 500, marginBottom: '8px' }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: cm.dot,
           display: 'inline-block',
-          ...(statusKey === 'connecting' || statusKey === 'waiting_data' ? { animation: 'pulse 1.2s infinite' } : {}) }} />
-        📡 Status Alat: {currentMap.text}
+          ...(statusKey !== 'connected' && statusKey !== 'disconnected' ? { animation: 'pulse 1.2s infinite' } : {}) }} />
+        📡 Status Alat: {cm.text}
+      </div>
+    );
+  };
+
+  // ─── RFID Notification Banner ─────────────────────────────────
+  const rfidBanner = () => {
+    if (!rfidNotif) return null;
+
+    if (rfidNotif.type === 'found') {
+      return (
+        <div style={{
+          background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: '10px',
+          padding: '10px 14px', marginBottom: '10px', display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between', gap: '8px',
+          animation: 'slideIn 0.3s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#065f46' }}>
+            <span style={{ fontSize: '1.2rem' }}>🎫</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>
+                Kartu teridentifikasi!
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#047857' }}>
+                <strong>{rfidNotif.childName}</strong> otomatis dipilih · UID: {rfidNotif.uid}
+              </div>
+            </div>
+          </div>
+          <button onClick={() => setRfidNotif(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#065f46', fontSize: '1rem', padding: 0 }}>✕</button>
+        </div>
+      );
+    }
+
+    // not_found
+    return (
+      <div style={{
+        background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '10px',
+        padding: '10px 14px', marginBottom: '10px', animation: 'slideIn 0.3s ease'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+          <div style={{ color: '#92400e' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '4px' }}>
+              ⚠️ Kartu RFID tidak terdaftar
+            </div>
+            <div style={{ fontSize: '0.8rem', marginBottom: '8px' }}>
+              UID: <code style={{ background: '#fde68a', padding: '1px 5px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                {rfidNotif.uid}
+              </code>
+            </div>
+            <button
+              onClick={() => router.push(`/data-anak?rfid_uid=${rfidNotif.uid}`)}
+              style={{
+                background: '#d97706', color: '#fff', border: 'none', borderRadius: '7px',
+                padding: '6px 14px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '5px'
+              }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Daftarkan Anak dengan Kartu Ini
+            </button>
+          </div>
+          <button onClick={() => setRfidNotif(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', fontSize: '1rem', padding: 0 }}>✕</button>
+        </div>
       </div>
     );
   };
@@ -261,38 +401,27 @@ export default function DataPengukuranPage() {
     <div className="page-content" style={{ padding: '24px' }}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes data-flash {
+          0%   { box-shadow: 0 0 0 0 rgba(37,99,235,.4); }
+          70%  { box-shadow: 0 0 0 6px rgba(37,99,235,0); }
+          100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+        }
         .mode-btn {
           display: flex; align-items: center; gap: 7px;
           padding: 8px 16px; border-radius: 8px; font-size: 0.83rem;
           font-weight: 600; border: 1.5px solid transparent;
           cursor: pointer; transition: all .18s; font-family: inherit;
         }
-        .mode-btn.active-manual {
-          background: #1e293b; color: #fff; border-color: #1e293b;
-        }
-        .mode-btn.active-auto {
-          background: #2563eb; color: #fff; border-color: #2563eb;
-          box-shadow: 0 3px 10px rgba(37,99,235,0.25);
-        }
-        .mode-btn.inactive {
-          background: #f8fafb; color: #64748b; border-color: #e8edf2;
-        }
+        .mode-btn.active-manual { background: #1e293b; color: #fff; border-color: #1e293b; }
+        .mode-btn.active-auto   { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 3px 10px rgba(37,99,235,0.25); }
+        .mode-btn.inactive      { background: #f8fafb; color: #64748b; border-color: #e8edf2; }
         .mode-btn.inactive:hover { background: #f1f5f9; color: #374151; }
         .auto-field input[type="number"] {
-          background: #eff6ff !important;
-          color: #1d4ed8 !important;
-          font-weight: 700 !important;
-          border-color: #93c5fd !important;
-          cursor: not-allowed;
+          background: #eff6ff !important; color: #1d4ed8 !important;
+          font-weight: 700 !important; border-color: #93c5fd !important; cursor: not-allowed;
         }
-        @keyframes data-flash {
-          0%   { box-shadow: 0 0 0 0 rgba(37,99,235,.4); }
-          70%  { box-shadow: 0 0 0 6px rgba(37,99,235,0); }
-          100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
-        }
-        .auto-field input.has-data {
-          animation: data-flash 0.6s ease;
-        }
+        .auto-field input.has-data { animation: data-flash 0.6s ease; }
       `}</style>
 
       <div style={{ marginBottom: '22px' }}>
@@ -301,7 +430,6 @@ export default function DataPengukuranPage() {
       </div>
 
       <div className="card">
-        {/* Toolbar */}
         <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ position: 'relative', maxWidth: '280px', flex: '1 1 200px' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
@@ -318,7 +446,6 @@ export default function DataPengukuranPage() {
           </button>
         </div>
 
-        {/* Table */}
         <div className="table-scroll" style={{ overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
@@ -368,45 +495,41 @@ export default function DataPengukuranPage() {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
 
-            {/* Header */}
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>
               {modal === 'add' ? '+ Tambah Pengukuran' : 'Edit Pengukuran'}
             </h3>
 
             {/* ── Toggle Auto / Manual ── */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '18px',
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px',
               padding: '10px', background: '#f8fafc', borderRadius: '12px',
               border: '1px solid #e2e8f0' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b',
                 alignSelf: 'center', marginRight: 4 }}>Mode Input:</span>
-
-              <button
-                className={`mode-btn ${inputMode === 'manual' ? 'active-manual' : 'inactive'}`}
-                onClick={() => setInputMode('manual')}>
-                 Manual
-              </button>
-              <button
-                className={`mode-btn ${inputMode === 'auto' ? 'active-auto' : 'inactive'}`}
-                onClick={() => setInputMode('auto')}>
-                 Auto (IoT)
-              </button>
+              <button className={`mode-btn ${inputMode === 'manual' ? 'active-manual' : 'inactive'}`}
+                onClick={() => setInputMode('manual')}> Manual</button>
+              <button className={`mode-btn ${inputMode === 'auto' ? 'active-auto' : 'inactive'}`}
+                onClick={() => setInputMode('auto')}> Auto (IoT)</button>
             </div>
 
-            {/* Status WS (hanya saat auto) */}
+            {/* Status WS */}
             {isAuto && wsBadge()}
+
+            {/* ── RFID Banner ── */}
+            {isAuto && rfidBanner()}
 
             {/* Error */}
             {error && (
               <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px',
-                borderRadius: '8px', fontSize: '0.85rem', marginBottom: '14px' }}>
-                {error}
-              </div>
+                borderRadius: '8px', fontSize: '0.85rem', marginBottom: '14px' }}>{error}</div>
             )}
 
             {/* Nama Anak */}
             <Field label="Nama Anak *">
               <select className="input-penting" value={form.child_id}
-                onChange={e => setForm({ ...form, child_id: e.target.value })}>
+                onChange={e => setForm({ ...form, child_id: e.target.value })}
+                style={isAuto && rfidNotif?.type === 'found' ? {
+                  borderColor: '#10b981', background: '#f0fdf4', fontWeight: 700
+                } : {}}>
                 <option value="">-- Pilih Anak --</option>
                 {children.map(c => <option key={c.id} value={c.id}>{c.nama_anak}</option>)}
               </select>
@@ -421,14 +544,12 @@ export default function DataPengukuranPage() {
 
             {/* BB & TB */}
             <div className={isAuto ? 'auto-field' : ''}>
-              {/* Keterangan mode auto */}
               {isAuto && (
                 <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0',
                   borderRadius: '8px', padding: '9px 12px', fontSize: '0.8rem',
                   color: '#15803d', marginBottom: '10px', display: 'flex',
                   alignItems: 'center', gap: '6px' }}>
                   🔄 Data BB & TB diisi <strong>otomatis</strong> dari timbangan via WebSocket.
-                  Pastikan ESP32-B aktif dan terhubung WiFi.
                 </div>
               )}
 
@@ -464,13 +585,11 @@ export default function DataPengukuranPage() {
                 style={{ resize: 'none' }} />
             </Field>
 
-            {/* Info box */}
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px',
               padding: '10px 12px', fontSize: '0.8rem', color: '#1d4ed8', marginBottom: '16px' }}>
               💡 Status gizi akan <strong>dihitung otomatis</strong> setelah data pengukuran disimpan.
             </div>
 
-            {/* Actions */}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button className="btn-secondary" onClick={closeModal}>Batal</button>
               <button className="btn-primary" onClick={handleSave} disabled={saving}>

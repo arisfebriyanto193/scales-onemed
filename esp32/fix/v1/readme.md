@@ -1,0 +1,1 @@
+mengambail data bb dan tb melalui esp A di kirimkan ke esp B dan di kirim ke websoket 

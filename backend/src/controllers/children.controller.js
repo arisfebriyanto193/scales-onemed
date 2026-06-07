@@ -30,6 +30,32 @@ const getAll = async (req, res) => {
   }
 };
 
+// GET /api/children/by-rfid/:uid  — lookup anak berdasarkan RFID UID
+const getByRfid = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    if (!uid) return res.status(400).json({ success: false, message: 'UID tidak boleh kosong.' });
+
+    const [rows] = await db.query(
+      'SELECT * FROM children WHERE rfid_uid = ? LIMIT 1',
+      [uid.toUpperCase()]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kartu RFID belum terdaftar.',
+        rfid_uid: uid.toUpperCase(),
+      });
+    }
+
+    res.json({ success: true, data: rows[0] });
+  } catch (err) {
+    console.error('children.getByRfid:', err);
+    res.status(500).json({ success: false, message: 'Gagal mencari data anak via RFID.' });
+  }
+};
+
 // GET /api/children/:id
 const getById = async (req, res) => {
   try {
@@ -44,7 +70,7 @@ const getById = async (req, res) => {
 // POST /api/children
 const create = async (req, res) => {
   try {
-    const { nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah, nomor_telepon } = req.body;
+    const { nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah, nomor_telepon, rfid_uid } = req.body;
 
     // Validasi field wajib
     if (!nik || !nama_anak || !jenis_kelamin || !tanggal_lahir || !nama_orang_tua || !alamat) {
@@ -57,10 +83,19 @@ const create = async (req, res) => {
       return res.status(409).json({ success: false, message: 'NIK sudah terdaftar.' });
     }
 
+    // Cek RFID duplikat (jika diisi)
+    if (rfid_uid) {
+      const [existingRfid] = await db.query('SELECT id FROM children WHERE rfid_uid = ?', [rfid_uid.toUpperCase()]);
+      if (existingRfid.length > 0) {
+        return res.status(409).json({ success: false, message: 'RFID UID sudah terdaftar untuk anak lain.' });
+      }
+    }
+
     const [result] = await db.query(
-      `INSERT INTO children (nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah, nomor_telepon, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah || null, nomor_telepon || null, req.user.id]
+      `INSERT INTO children (nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah, nomor_telepon, rfid_uid, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat,
+       wilayah || null, nomor_telepon || null, rfid_uid ? rfid_uid.toUpperCase() : null, req.user.id]
     );
 
     const [newRow] = await db.query('SELECT * FROM children WHERE id = ?', [result.insertId]);
@@ -75,15 +110,27 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah, nomor_telepon } = req.body;
+    const { nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah, nomor_telepon, rfid_uid } = req.body;
 
     const [existing] = await db.query('SELECT id FROM children WHERE id = ?', [id]);
     if (existing.length === 0) return res.status(404).json({ success: false, message: 'Data anak tidak ditemukan.' });
 
+    // Cek RFID duplikat dari anak lain (jika diisi)
+    if (rfid_uid) {
+      const [existingRfid] = await db.query(
+        'SELECT id FROM children WHERE rfid_uid = ? AND id != ?',
+        [rfid_uid.toUpperCase(), id]
+      );
+      if (existingRfid.length > 0) {
+        return res.status(409).json({ success: false, message: 'RFID UID sudah terdaftar untuk anak lain.' });
+      }
+    }
+
     await db.query(
       `UPDATE children SET nik=?, nama_anak=?, jenis_kelamin=?, tanggal_lahir=?,
-       nama_orang_tua=?, alamat=?, wilayah=?, nomor_telepon=? WHERE id=?`,
-      [nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat, wilayah, nomor_telepon, id]
+       nama_orang_tua=?, alamat=?, wilayah=?, nomor_telepon=?, rfid_uid=? WHERE id=?`,
+      [nik, nama_anak, jenis_kelamin, tanggal_lahir, nama_orang_tua, alamat,
+       wilayah, nomor_telepon, rfid_uid ? rfid_uid.toUpperCase() : null, id]
     );
 
     const [updated] = await db.query('SELECT * FROM children WHERE id = ?', [id]);
@@ -108,4 +155,4 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, remove };
+module.exports = { getAll, getByRfid, getById, create, update, remove };
