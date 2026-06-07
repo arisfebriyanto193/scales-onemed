@@ -254,7 +254,10 @@ export default function DataPengukuranPage() {
 
   // ─── Modal Helpers ────────────────────────────────────────────
   const openAdd = () => {
-    setForm({ ...EMPTY });
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    setForm({ ...EMPTY, tanggal_kunjungan: todayStr });
     setEditId(null);
     setError('');
     setInputMode('manual');

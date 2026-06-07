@@ -9,6 +9,7 @@ const cors       = require('cors');
 const http       = require('http');
 const WebSocket  = require('ws');
 const url        = require('url');
+const db         = require('./config/database');
 
 // ── Import Routes ──
 const authRoutes        = require('./routes/auth.routes');
@@ -115,6 +116,31 @@ server.on('upgrade', (req, socket, head) => {
   });
 });
 
+// ── Helper: Cek RFID di DB & Publish ke abcd/childname ──
+async function processIdCard(uid) {
+  if (!uid) return;
+  try {
+    const [rows] = await db.query('SELECT nama_anak FROM children WHERE rfid_uid = ? LIMIT 1', [uid.toUpperCase().trim()]);
+    const childName = rows.length > 0 ? rows[0].nama_anak : 'Tidak Terdaftar';
+    
+    const responseTopic = 'abcd/childname';
+    const msg = JSON.stringify({ topic: responseTopic, payload: childName });
+    const rawMsg = `${responseTopic}|${childName}`; // Kirim RAW juga untuk berjaga-jaga jika ESP32 memerlukannya
+    
+    if (subscriptions[responseTopic]) {
+      subscriptions[responseTopic].forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(msg);    // Format JSON standar (untuk frontend)
+          client.send(rawMsg); // Format RAW (untuk ESP32)
+        }
+      });
+    }
+    console.log(`🔍 [WS] RFID Lookup [${uid}] => ${childName}`);
+  } catch (err) {
+    console.error('❌ DB Error during RFID Lookup:', err.message);
+  }
+}
+
 wss.on('connection', (ws) => {
   console.log('🔌 New client connected');
 
@@ -146,6 +172,10 @@ wss.on('connection', (ws) => {
           }
 
           console.log(`📢 Published to ${topic}:`, payload);
+          
+          if (topic === 'abcd/idcard') {
+            processIdCard(payload);
+          }
         }
 
       // RAW format: sensor/temp|25.4
@@ -159,6 +189,10 @@ wss.on('connection', (ws) => {
               client.send(msg);
             }
           });
+        }
+        
+        if (topic === 'abcd/idcard') {
+          processIdCard(payload);
         }
 
       //  console.log(`📢 [RAW] ${topic} => ${payload}`);

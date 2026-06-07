@@ -175,12 +175,12 @@ async function autoCalculateStatus(measurementId, childId, usiaBulan, beratBadan
     const bulanRef     = Math.min(usiaBulan, 60); // max 60 bulan
 
     const [refBB] = await db.query(
-      'SELECT * FROM growth_references WHERE jenis_kelamin=? AND tipe="BB_U" AND usia_bulan=?',
-      [jenisKelamin, bulanRef]
+      'SELECT * FROM growth_references WHERE jenis_kelamin=? AND tipe="BB_U" AND usia_bulan <= ? ORDER BY usia_bulan DESC LIMIT 1',
+      [jenisKelamin, usiaBulan]
     );
     const [refTB] = await db.query(
-      'SELECT * FROM growth_references WHERE jenis_kelamin=? AND tipe="TB_U" AND usia_bulan=?',
-      [jenisKelamin, bulanRef]
+      'SELECT * FROM growth_references WHERE jenis_kelamin=? AND tipe="TB_U" AND usia_bulan <= ? ORDER BY usia_bulan DESC LIMIT 1',
+      [jenisKelamin, usiaBulan]
     );
 
     let statusBB = 'Berat Badan Normal';
