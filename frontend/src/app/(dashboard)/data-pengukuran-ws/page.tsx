@@ -557,7 +557,7 @@ export default function DataPengukuranPage() {
                 <Field label={`Berat Badan (kg) *${isAuto ? ' 📡' : ''}`}>
                   <input
                     className={`input-penting${isAuto && form.berat_badan ? ' has-data' : ''}`}
-                    type="number" step="0.01" min="0.5" max="200"
+                    type="number" step="0.01" min="0.01" max="200"
                     placeholder={isAuto ? 'Menunggu data...' : 'Contoh: 7.50'}
                     value={form.berat_badan}
                     readOnly={isAuto}
@@ -567,7 +567,7 @@ export default function DataPengukuranPage() {
                 <Field label={`Tinggi Badan (cm) *${isAuto ? ' 📡' : ''}`}>
                   <input
                     className={`input-penting${isAuto && form.tinggi_badan ? ' has-data' : ''}`}
-                    type="number" step="0.1" min="30" max="250"
+                    type="number" step="0.1" min="0.1" max="250"
                     placeholder={isAuto ? 'Menunggu data...' : 'Contoh: 70.0'}
                     value={form.tinggi_badan}
                     readOnly={isAuto}
