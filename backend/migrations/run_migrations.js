@@ -32,6 +32,8 @@ const MIGRATION_FILES = [
   '003_create_measurements.sql',
   '004_create_nutritional_status.sql',
   '005_create_growth_references.sql',
+  '006_create_temp_measurements.sql',
+  '007_add_rfid_to_children.sql',
 ];
 
 // ── Warna terminal untuk output ──

@@ -214,7 +214,7 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
       Serial.println("📨 [WS] Pesan: " + msg);
 
       // ── Format "topic|value" ──────────────────────────────
-      if (msg.includes('|')) {
+      if (msg.indexOf('|') >= 0) {
         int sep = msg.indexOf('|');
         String topic = msg.substring(0, sep);
         String value = msg.substring(sep + 1);
