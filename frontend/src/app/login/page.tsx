@@ -32,7 +32,7 @@ export default function LoginPage() {
   const [error, setError]       = useState('');
 
   // Mode Suspense (0 = nonaktif, 1 = aktif)
-  const suspend_status = 1; 
+  const suspend_status = 0; 
   // Batas waktu penguncian
   const lockTime = new Date('2026-06-08T14:00:00+07:00').getTime();
   
