@@ -1,5 +1,5 @@
 'use client';
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
@@ -31,8 +31,68 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
 
+  // Mode Suspense (0 = nonaktif, 1 = aktif)
+  const suspend_status = 1; 
+  // Batas waktu penguncian
+  const lockTime = new Date('2026-06-08T14:00:00+07:00').getTime();
+  
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [timeOffset, setTimeOffset] = useState(0);
+
+  useEffect(() => {
+    if (suspend_status === 1) {
+      // Ambil waktu dari server agar tidak bisa diakali dengan mengubah jam PC
+      const fetchServerTime = async () => {
+        try {
+          // Menggunakan API internal kita sendiri agar stabil dan terhindar dari CORS/error koneksi
+          const res = await fetch('/api/time', { cache: 'no-store' });
+          const data = await res.json();
+          const serverTime = data.time;
+          const localTime = new Date().getTime();
+          setTimeOffset(serverTime - localTime); // Selisih waktu server dan lokal
+        } catch (error) {
+          console.error('Gagal mengambil waktu server:', error);
+        }
+      };
+      fetchServerTime();
+    }
+  }, [suspend_status]);
+
+  useEffect(() => {
+    if (suspend_status === 1) {
+      const checkTime = () => {
+        // Waktu saat ini berdasarkan device + selisih waktu dari server
+        const now = new Date().getTime() + timeOffset;
+        const diff = lockTime - now;
+        if (diff <= 0) {
+          setIsLocked(true);
+          setTimeLeft(0);
+        } else {
+          setIsLocked(false);
+          setTimeLeft(diff);
+        }
+      };
+      
+      checkTime();
+      const interval = setInterval(checkTime, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [lockTime, suspend_status, timeOffset]);
+
+  const formatTime = (ms: number) => {
+    const hours = Math.floor((ms / (1000 * 60 * 60)));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${hours} jam ${minutes} menit ${seconds} detik`;
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isLocked) {
+      setError('Web terkunci. Waktu telah habis.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -155,6 +215,39 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* Mode Suspense Warnings */}
+          {suspend_status === 1 && (
+            isLocked ? (
+              <div style={{
+                background: '#fee2e2',
+                color: '#b91c1c',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                marginBottom: '20px',
+                textAlign: 'center',
+                border: '1px solid #fecaca'
+              }}>
+                Web terkunci
+              </div>
+            ) : (
+              <div style={{
+                background: '#fef9c3',
+                color: '#854d0e',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                marginBottom: '20px',
+                textAlign: 'center',
+                border: '1px solid #fef08a'
+              }}>
+                Web tersedia {formatTime(timeLeft)} lagi
+              </div>
+            )
+          )}
+
           {/* Error */}
           {error && (
             <div style={{
@@ -198,6 +291,7 @@ export default function LoginPage() {
                   onChange={e => setUsername(e.target.value)}
                   required
                   autoFocus
+                  disabled={isLocked}
                   style={{ paddingLeft: '42px' }}
                 />
               </div>
@@ -223,6 +317,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
+                  disabled={isLocked}
                   style={{ paddingLeft: '42px', paddingRight: '44px' }}
                 />
                 <button
@@ -247,7 +342,7 @@ export default function LoginPage() {
               type="submit"
               className="btn-primary"
               style={{ width: '100%', padding: '12px', fontSize: '0.95rem', justifyContent: 'center' }}
-              disabled={loading}
+              disabled={loading || isLocked}
             >
               {loading ? (
                 <>
@@ -257,7 +352,7 @@ export default function LoginPage() {
                   </svg>
                   Memproses...
                 </>
-              ) : 'Masuk'}
+              ) : isLocked ? 'Terkunci' : 'Masuk'}
             </button>
           </form>
 
