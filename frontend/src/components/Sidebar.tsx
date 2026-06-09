@@ -78,10 +78,7 @@ export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void 
           }}>
             <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
           </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', lineHeight: 1.2 }}>PENTING</div>
-            <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.05em', marginTop: '1px' }}>SISTEM POSYANDU</div>
-          </div>
+          
         </div>
       </div>
 
