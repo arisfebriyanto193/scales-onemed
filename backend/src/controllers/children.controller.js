@@ -21,7 +21,7 @@ const getPublicByNik = async (req, res) => {
 
     // Ambil riwayat pengukuran anak
     const [measurementsRows] = await db.query(
-      `SELECT m.*, ns.status_bb_u, ns.status_tb_u, ns.status_bb_tb, ns.status_imt_u
+      `SELECT m.*, ns.status_bb_umur AS status_bb_u, ns.status_tb_umur AS status_tb_u
        FROM measurements m
        LEFT JOIN nutritional_status ns ON m.id = ns.measurement_id
        WHERE m.child_id = ?
