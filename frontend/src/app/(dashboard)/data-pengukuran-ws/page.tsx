@@ -8,10 +8,11 @@ interface Measurement {
   id: number; child_id: number; nama_anak: string; tanggal_lahir: string;
   jenis_kelamin: string; tanggal_kunjungan: string; usia_bulan: number;
   usia_teks: string; berat_badan: number; tinggi_badan: number; catatan?: string;
+  status_kesehatan?: string;
 }
 interface Child { id: number; nama_anak: string; }
 
-const EMPTY = { child_id: '', tanggal_kunjungan: '', berat_badan: '', tinggi_badan: '', catatan: '' };
+const EMPTY = { child_id: '', tanggal_kunjungan: '', berat_badan: '', tinggi_badan: '', catatan: '', status_kesehatan_tipe: '', status_kesehatan_lainnya: '' };
 
 // ─── Field Wrapper ────────────────────────────────────────────
 const Field = ({ label, children: fc }: { label: string; children: React.ReactNode }) => (
@@ -266,12 +267,15 @@ export default function DataPengukuranPage() {
   };
 
   const openEdit = (m: Measurement) => {
+    const isLainnya = m.status_kesehatan && !['Sehat', 'Sedang Sakit'].includes(m.status_kesehatan);
     setForm({
       child_id: String(m.child_id),
       tanggal_kunjungan: m.tanggal_kunjungan?.split('T')[0] || '',
       berat_badan: String(m.berat_badan),
       tinggi_badan: String(m.tinggi_badan),
       catatan: m.catatan || '',
+      status_kesehatan_tipe: isLainnya ? 'Lainnya' : (m.status_kesehatan || ''),
+      status_kesehatan_lainnya: isLainnya ? (m.status_kesehatan || '') : '',
     });
     setEditId(m.id);
     setError('');
@@ -296,6 +300,7 @@ export default function DataPengukuranPage() {
         berat_badan:       parseFloat(form.berat_badan),
         tinggi_badan:      parseFloat(form.tinggi_badan),
         catatan:           form.catatan || null,
+        status_kesehatan:  form.status_kesehatan_tipe === 'Lainnya' ? form.status_kesehatan_lainnya : form.status_kesehatan_tipe || null,
       };
       if (modal === 'add') await api.post('/measurements', payload);
       else await api.put(`/measurements/${editId}`, payload);
@@ -455,14 +460,14 @@ export default function DataPengukuranPage() {
               <tr>
                 <th>ID</th><th>Nama Anak</th><th>Tgl Lahir</th><th>Usia</th>
                 <th>Jenis Kelamin</th><th>Berat Badan</th><th>Tinggi Badan</th>
-                <th>Tgl Kunjungan</th><th>Aksi</th>
+                <th>Tgl Kunjungan</th><th>Status Kesehatan</th><th>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Memuat data...</td></tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Belum ada data pengukuran.</td></tr>
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Belum ada data pengukuran.</td></tr>
               ) : data.map((m) => (
                 <tr key={m.id}>
                   <td style={{ fontWeight: 600, color: '#64748b' }}>{m.id}</td>
@@ -477,6 +482,7 @@ export default function DataPengukuranPage() {
                   <td style={{ fontWeight: 600 }}>{m.berat_badan} kg</td>
                   <td style={{ fontWeight: 600 }}>{m.tinggi_badan} cm</td>
                   <td>{m.tanggal_kunjungan?.split('T')[0]}</td>
+                  <td>{m.status_kesehatan || '-'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }}
@@ -586,6 +592,23 @@ export default function DataPengukuranPage() {
                 value={form.catatan}
                 onChange={e => setForm({ ...form, catatan: e.target.value })}
                 style={{ resize: 'none' }} />
+            </Field>
+
+            {/* Status Kesehatan */}
+            <Field label="Status Kesehatan Anak">
+              <select className="input-penting" value={form.status_kesehatan_tipe}
+                onChange={e => setForm({ ...form, status_kesehatan_tipe: e.target.value })}>
+                <option value="">-- Pilih Status --</option>
+                <option value="Sehat">Sehat</option>
+                <option value="Sedang Sakit">Sedang Sakit</option>
+                <option value="Lainnya">Lainnya (Ketik Sendiri)</option>
+              </select>
+              {form.status_kesehatan_tipe === 'Lainnya' && (
+                <input className="input-penting" style={{ marginTop: '8px' }} type="text"
+                  placeholder="Ketik status kesehatan..."
+                  value={form.status_kesehatan_lainnya}
+                  onChange={e => setForm({ ...form, status_kesehatan_lainnya: e.target.value })} />
+              )}
             </Field>
 
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px',
