@@ -86,7 +86,7 @@ const getByChildId = async (req, res) => {
 // POST /api/measurements
 const create = async (req, res) => {
   try {
-    const { child_id, tanggal_kunjungan, berat_badan, tinggi_badan, catatan } = req.body;
+    const { child_id, tanggal_kunjungan, berat_badan, tinggi_badan, catatan, status_kesehatan } = req.body;
 
     if (!child_id || !tanggal_kunjungan || !berat_badan || !tinggi_badan) {
       return res.status(400).json({ success: false, message: 'Field wajib: child_id, tanggal_kunjungan, berat_badan, tinggi_badan.' });
@@ -99,9 +99,9 @@ const create = async (req, res) => {
     const usia_bulan = hitungUsiaBulan(childRows[0].tanggal_lahir, tanggal_kunjungan);
 
     const [result] = await db.query(
-      `INSERT INTO measurements (child_id, tanggal_kunjungan, usia_bulan, berat_badan, tinggi_badan, catatan, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [child_id, tanggal_kunjungan, usia_bulan, berat_badan, tinggi_badan, catatan || null, req.user.id]
+      `INSERT INTO measurements (child_id, tanggal_kunjungan, usia_bulan, berat_badan, tinggi_badan, catatan, status_kesehatan, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [child_id, tanggal_kunjungan, usia_bulan, berat_badan, tinggi_badan, catatan || null, status_kesehatan || null, req.user.id]
     );
 
     // Auto-hitung status gizi setelah insert pengukuran
@@ -127,7 +127,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { tanggal_kunjungan, berat_badan, tinggi_badan, catatan } = req.body;
+    const { tanggal_kunjungan, berat_badan, tinggi_badan, catatan, status_kesehatan } = req.body;
 
     const [existing] = await db.query(
       'SELECT m.*, c.tanggal_lahir FROM measurements m JOIN children c ON m.child_id = c.id WHERE m.id = ?', [id]
@@ -137,8 +137,8 @@ const update = async (req, res) => {
     const usia_bulan = hitungUsiaBulan(existing[0].tanggal_lahir, tanggal_kunjungan);
 
     await db.query(
-      'UPDATE measurements SET tanggal_kunjungan=?, usia_bulan=?, berat_badan=?, tinggi_badan=?, catatan=? WHERE id=?',
-      [tanggal_kunjungan, usia_bulan, berat_badan, tinggi_badan, catatan || null, id]
+      'UPDATE measurements SET tanggal_kunjungan=?, usia_bulan=?, berat_badan=?, tinggi_badan=?, catatan=?, status_kesehatan=? WHERE id=?',
+      [tanggal_kunjungan, usia_bulan, berat_badan, tinggi_badan, catatan || null, status_kesehatan || null, id]
     );
 
     // Hitung ulang status gizi

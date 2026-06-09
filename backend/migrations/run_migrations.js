@@ -36,6 +36,7 @@ const MIGRATION_FILES = [
   '007_add_rfid_to_children.sql',
   '008_update_measurements_constraints.sql',
   '009_relax_lower_bounds.sql',
+  '010_add_status_kesehatan_to_measurements.sql',
 ];
 
 // ── Warna terminal untuk output ──
