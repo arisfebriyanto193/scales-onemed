@@ -7,6 +7,9 @@ const router     = express.Router();
 const controller = require('../controllers/children.controller');
 const { authenticate } = require('../middleware/auth.middleware');
 
+// GET    /api/children/public/by-nik/:nik - Akses publik data anak via NIK
+router.get('/public/by-nik/:nik', controller.getPublicByNik);
+
 // Semua route butuh autentikasi
 router.use(authenticate);
 

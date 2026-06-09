@@ -5,6 +5,37 @@
 
 const db = require('../config/database');
 
+// GET /api/children/public/by-nik/:nik
+const getPublicByNik = async (req, res) => {
+  try {
+    const { nik } = req.params;
+    if (!nik) return res.status(400).json({ success: false, message: 'NIK tidak boleh kosong.' });
+
+    // Cari anak berdasarkan NIK
+    const [childrenRows] = await db.query('SELECT * FROM children WHERE nik = ? LIMIT 1', [nik]);
+    if (childrenRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Data anak dengan NIK tersebut tidak ditemukan.' });
+    }
+
+    const child = childrenRows[0];
+
+    // Ambil riwayat pengukuran anak
+    const [measurementsRows] = await db.query(
+      `SELECT m.*, ns.status_bb_u, ns.status_tb_u, ns.status_bb_tb, ns.status_imt_u
+       FROM measurements m
+       LEFT JOIN nutritional_status ns ON m.id = ns.measurement_id
+       WHERE m.child_id = ?
+       ORDER BY m.tanggal_kunjungan ASC`,
+      [child.id]
+    );
+
+    res.json({ success: true, data: { child, measurements: measurementsRows } });
+  } catch (err) {
+    console.error('children.getPublicByNik:', err);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan saat mencari data anak.' });
+  }
+};
+
 // GET /api/children
 const getAll = async (req, res) => {
   try {
@@ -155,4 +186,4 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getByRfid, getById, create, update, remove };
+module.exports = { getAll, getByRfid, getById, create, update, remove, getPublicByNik };

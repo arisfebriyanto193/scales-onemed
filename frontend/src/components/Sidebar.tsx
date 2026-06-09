@@ -78,7 +78,7 @@ export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void 
           }}>
             <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
           </div>
-          
+
         </div>
       </div>
 

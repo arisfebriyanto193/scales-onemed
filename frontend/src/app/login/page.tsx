@@ -30,6 +30,7 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+  const [showLoginForm, setShowLoginForm] = useState(false);
 
   // Mode Suspense (0 = nonaktif, 1 = aktif)
   const suspend_status: number = 0; 
@@ -211,146 +212,178 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Mode Suspense Warnings */}
-          {suspend_status === 1 && (
-            isLocked ? (
-              <div style={{
-                background: '#fee2e2',
-                color: '#b91c1c',
-                padding: '12px 16px',
-                borderRadius: '10px',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '20px',
-                textAlign: 'center',
-                border: '1px solid #fecaca'
-              }}>
-                Web terkunci
-              </div>
-            ) : (
-              <div style={{
-                background: '#fef9c3',
-                color: '#854d0e',
-                padding: '12px 16px',
-                borderRadius: '10px',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '20px',
-                textAlign: 'center',
-                border: '1px solid #fef08a'
-              }}>
-                Web tersedia {formatTime(timeLeft)} lagi
-              </div>
-            )
-          )}
-
-          {/* Error */}
-          {error && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: '#b91c1c',
-              padding: '12px 16px',
-              borderRadius: '10px',
-              fontSize: '0.85rem',
-              marginBottom: '20px',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              {error}
+          {!showLoginForm ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <button
+                onClick={() => router.push('/cek-data-anak')}
+                className="btn-secondary"
+                style={{
+                  width: '100%', padding: '14px', fontSize: '1rem', justifyContent: 'center',
+                  background: '#f1f5f9', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: '10px',
+                  fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
+              >
+                Cek Data Anak (Orang Tua)
+              </button>
+              <button
+                onClick={() => setShowLoginForm(true)}
+                className="btn-primary"
+                style={{ width: '100%', padding: '14px', fontSize: '1rem', justifyContent: 'center', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                Login Petugas
+              </button>
             </div>
-          )}
+          ) : (
+            <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
+              {/* Mode Suspense Warnings */}
+              {suspend_status === 1 && (
+                isLocked ? (
+                  <div style={{
+                    background: '#fee2e2',
+                    color: '#b91c1c',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    marginBottom: '20px',
+                    textAlign: 'center',
+                    border: '1px solid #fecaca'
+                  }}>
+                    Web terkunci
+                  </div>
+                ) : (
+                  <div style={{
+                    background: '#fef9c3',
+                    color: '#854d0e',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    marginBottom: '20px',
+                    textAlign: 'center',
+                    border: '1px solid #fef08a'
+                  }}>
+                    Web tersedia {formatTime(timeLeft)} lagi
+                  </div>
+                )
+              )}
 
-          <form onSubmit={handleSubmit}>
-            {/* Username */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '7px', color: '#374151' }}>
-                Username
-              </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{
-                  position: 'absolute', left: '13px', top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#94a3b8', display: 'flex',
+              {/* Error */}
+              {error && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  fontSize: '0.85rem',
+                  marginBottom: '20px',
                 }}>
-                  <IconUser />
-                </span>
-                <input
-                  className="input-penting"
-                  type="text"
-                  placeholder="Masukkan username"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  required
-                  autoFocus
-                  disabled={isLocked}
-                  style={{ paddingLeft: '42px' }}
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '7px', color: '#374151' }}>
-                Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{
-                  position: 'absolute', left: '13px', top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#94a3b8', display: 'flex',
-                }}>
-                  <IconLock />
-                </span>
-                <input
-                  className="input-penting"
-                  type={showPass ? 'text' : 'password'}
-                  placeholder="Masukkan password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  disabled={isLocked}
-                  style={{ paddingLeft: '42px', paddingRight: '44px' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  style={{
-                    position: 'absolute', right: '12px', top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: '#94a3b8', display: 'flex', padding: '2px',
-                    transition: 'color 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
-                  onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
-                >
-                  <IconEye show={showPass} />
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="btn-primary"
-              style={{ width: '100%', padding: '12px', fontSize: '0.95rem', justifyContent: 'center' }}
-              disabled={loading || isLocked}
-            >
-              {loading ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ animation: 'spin 0.8s linear infinite' }}>
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                   </svg>
-                  Memproses...
-                </>
-              ) : isLocked ? 'Terkunci' : 'Masuk'}
-            </button>
-          </form>
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit}>
+                {/* Username */}
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '7px', color: '#374151' }}>
+                    Username
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{
+                      position: 'absolute', left: '13px', top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8', display: 'flex',
+                    }}>
+                      <IconUser />
+                    </span>
+                    <input
+                      className="input-penting"
+                      type="text"
+                      placeholder="Masukkan username"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      required
+                      autoFocus
+                      disabled={isLocked}
+                      style={{ paddingLeft: '42px' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '7px', color: '#374151' }}>
+                    Password
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{
+                      position: 'absolute', left: '13px', top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#94a3b8', display: 'flex',
+                    }}>
+                      <IconLock />
+                    </span>
+                    <input
+                      className="input-penting"
+                      type={showPass ? 'text' : 'password'}
+                      placeholder="Masukkan password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      disabled={isLocked}
+                      style={{ paddingLeft: '42px', paddingRight: '44px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      style={{
+                        position: 'absolute', right: '12px', top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: '#94a3b8', display: 'flex', padding: '2px',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+                    >
+                      <IconEye show={showPass} />
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '12px', fontSize: '0.95rem', justifyContent: 'center' }}
+                  disabled={loading || isLocked}
+                >
+                  {loading ? (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ animation: 'spin 0.8s linear infinite' }}>
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                      </svg>
+                      Memproses...
+                    </>
+                  ) : isLocked ? 'Terkunci' : 'Masuk'}
+                </button>
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <button type="button" onClick={() => setShowLoginForm(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.875rem' }}>
+                    &larr; Kembali
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '28px' }}>
             &copy; {new Date().getFullYear()} PENTING — Sistem Posyandu v1.0
@@ -364,6 +397,10 @@ export default function LoginPage() {
           .login-panel-left { display: flex !important; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
     </div>
   );
