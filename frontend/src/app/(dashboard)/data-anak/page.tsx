@@ -542,6 +542,7 @@ function DataAnakInner() {
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Usia</th>
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>BB (kg)</th>
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>TB (cm)</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status Kes.</th>
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status BB/U</th>
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status TB/U</th>
                           </tr>
@@ -553,6 +554,7 @@ function DataAnakInner() {
                               <td style={{ padding: '12px 20px' }}>{m.usia_bulan} bln</td>
                               <td style={{ padding: '12px 20px', fontWeight: 500, color: '#3b82f6' }}>{m.berat_badan}</td>
                               <td style={{ padding: '12px 20px', fontWeight: 500, color: '#10b981' }}>{m.tinggi_badan}</td>
+                              <td style={{ padding: '12px 20px', fontSize: '0.8rem', color: '#64748b' }}>{m.status_kesehatan || '-'}</td>
                               <td style={{ padding: '12px 20px' }}>
                                 <span style={{
                                   padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
