@@ -68,17 +68,15 @@ export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void 
       {/* Logo */}
       <div style={{ padding: '24px 20px', borderBottom: '1px solid #f1f5f9' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
-          {/* Cross/Medical logo */}
+          {/* Custom Logo */}
           <div style={{
-            width: '38px', height: '38px',
-            background: '#2563eb',
-            borderRadius: '10px',
+            height: '38px',
+            borderRadius: '6px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
+            overflow: 'hidden',
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3v18M3 12h18"/>
-            </svg>
+            <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', lineHeight: 1.2 }}>PENTING</div>

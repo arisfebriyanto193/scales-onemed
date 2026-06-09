@@ -144,15 +144,13 @@ export default function LoginPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '48px' }}>
             <div style={{
-              width: '44px', height: '44px',
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '12px',
+              height: '44px',
+              borderRadius: '8px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              backdropFilter: 'blur(8px)',
+              overflow: 'hidden',
+              flexShrink: 0,
             }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v18M3 12h18"/>
-              </svg>
+              <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
             </div>
             <div>
               <div style={{ color: 'white', fontWeight: 800, fontSize: '1.1rem' }}>PENTING</div>
@@ -194,18 +192,16 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <div style={{
-              width: '54px', height: '54px',
-              background: '#2563eb',
-              borderRadius: '14px',
+              height: '54px',
+              borderRadius: '8px',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '14px',
-              boxShadow: '0 8px 24px rgba(13,148,136,0.3)',
+              overflow: 'hidden',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
             }}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v18M3 12h18"/>
-              </svg>
+              <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
             </div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>
               Selamat Datang
