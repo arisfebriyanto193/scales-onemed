@@ -59,18 +59,39 @@ export default function DashboardPage() {
   const [tbRef, setTbRef]   = useState<GrowthRef[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [childrenList, setChildrenList] = useState<any[]>([]);
+  const [selectedChildNik, setSelectedChildNik] = useState<string>('');
+  const [detailData, setDetailData] = useState<{ child: any, measurements: any[] } | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
+
   useEffect(() => {
     Promise.all([
       api.get('/dashboard/stats'),
       api.get('/dashboard/growth-chart?jenis_kelamin=Laki-laki&tipe=BB_U'),
       api.get('/dashboard/growth-chart?jenis_kelamin=Laki-laki&tipe=TB_U'),
-    ]).then(([s, bb, tb]) => {
+      api.get('/children'),
+    ]).then(([s, bb, tb, childrenRes]) => {
       setStats(s.data.data);
       setBbRef(bb.data.data.referensi || []);
       setTbRef(tb.data.data.referensi || []);
+      setChildrenList(childrenRes.data.data || []);
     }).catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!selectedChildNik) {
+      setDetailData(null);
+      return;
+    }
+    setDetailLoading(true);
+    setDetailError('');
+    api.get(`/children/public/by-nik/${selectedChildNik}`)
+      .then(res => setDetailData(res.data.data))
+      .catch(err => setDetailError(err.response?.data?.message || 'Gagal memuat data anak.'))
+      .finally(() => setDetailLoading(false));
+  }, [selectedChildNik]);
 
   const chartOptions = (label: string) => ({
     responsive: true,
@@ -172,6 +193,157 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Detail Anak Section */}
+      <div style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>
+          Data Pertumbuhan Anak
+        </h2>
+        
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '8px', color: '#475569' }}>
+            Pilih Anak untuk Melihat Detail:
+          </label>
+          <select 
+            className="input-penting" 
+            style={{ maxWidth: '400px', width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={selectedChildNik}
+            onChange={(e) => setSelectedChildNik(e.target.value)}
+          >
+            <option value="">-- Pilih Anak --</option>
+            {childrenList.map((c) => (
+              <option key={c.nik} value={c.nik}>
+                {c.nama_anak} ({c.nik})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedChildNik && (
+          <div>
+            {detailLoading ? (
+              <div style={{ padding: '20px', color: '#64748b' }}>Memuat riwayat...</div>
+            ) : detailError ? (
+              <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px' }}>{detailError}</div>
+            ) : detailData ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {/* Profil Anak */}
+                <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>NAMA ANAK</p>
+                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 600 }}>{detailData.child.nama_anak}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>NIK</p>
+                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 500 }}>{detailData.child.nik}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>TANGGAL LAHIR</p>
+                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 500 }}>
+                        {new Date(detailData.child.tanggal_lahir).toLocaleDateString('id-ID')}
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>JENIS KELAMIN</p>
+                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 500 }}>{detailData.child.jenis_kelamin}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grafik Anak */}
+                {detailData.measurements.length > 0 && (
+                  <div style={{ border: '1px solid #e2e8f0', padding: '20px', borderRadius: '12px', background: '#ffffff' }}>
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>Grafik Pertumbuhan Anak</h4>
+                    <div style={{ height: '300px', position: 'relative' }}>
+                      <Line 
+                        data={{
+                          labels: detailData.measurements.map(m => {
+                            const date = new Date(m.tanggal_kunjungan);
+                            return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                          }),
+                          datasets: [
+                            {
+                              label: 'Berat Badan (kg)',
+                              data: detailData.measurements.map(m => m.berat_badan),
+                              borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.5)', yAxisID: 'y', tension: 0.3,
+                            },
+                            {
+                              label: 'Tinggi Badan (cm)',
+                              data: detailData.measurements.map(m => m.tinggi_badan),
+                              borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.5)', yAxisID: 'y1', tension: 0.3,
+                            }
+                          ]
+                        }}
+                        options={{
+                          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index' as const, intersect: false },
+                          scales: {
+                            y: { type: 'linear' as const, display: true, position: 'left' as const, title: { display: true, text: 'Berat (kg)' } },
+                            y1: { type: 'linear' as const, display: true, position: 'right' as const, grid: { drawOnChartArea: false }, title: { display: true, text: 'Tinggi (cm)' } },
+                          }
+                        }} 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Riwayat Pengukuran */}
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', background: '#ffffff' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '20px 20px 16px 20px', color: '#1e293b' }}>Riwayat Pengukuran</h4>
+                  {detailData.measurements.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>Belum ada riwayat pengukuran.</div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Tanggal</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Usia</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>BB (kg)</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>TB (cm)</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status Kes.</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status BB/U</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status TB/U</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {detailData.measurements.map((m, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '12px 20px' }}>{new Date(m.tanggal_kunjungan).toLocaleDateString('id-ID')}</td>
+                              <td style={{ padding: '12px 20px' }}>{m.usia_bulan} bln</td>
+                              <td style={{ padding: '12px 20px', fontWeight: 500, color: '#3b82f6' }}>{m.berat_badan}</td>
+                              <td style={{ padding: '12px 20px', fontWeight: 500, color: '#10b981' }}>{m.tinggi_badan}</td>
+                              <td style={{ padding: '12px 20px', fontSize: '0.8rem', color: '#64748b' }}>{m.status_kesehatan || '-'}</td>
+                              <td style={{ padding: '12px 20px' }}>
+                                <span style={{
+                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
+                                  background: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#fee2e2' : '#dcfce7',
+                                  color: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#b91c1c' : '#15803d'
+                                }}>
+                                  {m.status_bb_u || '-'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 20px' }}>
+                                <span style={{
+                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
+                                  background: m.status_tb_u?.includes('Pendek') ? '#fee2e2' : '#dcfce7',
+                                  color: m.status_tb_u?.includes('Pendek') ? '#b91c1c' : '#15803d'
+                                }}>
+                                  {m.status_tb_u || '-'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
