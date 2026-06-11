@@ -1,7 +1,4 @@
--- =====================================================
--- Migration: 008_update_measurements_constraints.sql
--- Deskripsi: Update tipe data dan batasan constraint untuk usia, tinggi, berat badan yang lebih besar
--- =====================================================
+
 
 -- Hapus constraints lama
 ALTER TABLE `measurements` DROP CONSTRAINT `chk_usia_bulan`;

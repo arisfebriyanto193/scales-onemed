@@ -1,20 +1,4 @@
--- =====================================================
--- Migration: 004_create_nutritional_status.sql
--- Deskripsi: Membuat tabel status gizi berdasarkan standar WHO/Kemenkes
--- Aplikasi: PENTING (Pencegahan Stunting Terintegrasi)
--- Tanggal: 2026-06-04
--- =====================================================
--- Referensi desain: Gambar 25 - Halaman Cek Status Gizi
--- Kolom: ID, Nama Anak, Wilayah,
---        Status Gizi Berat Badan/Umur,
---        Status Gizi Tinggi Badan/Umur,
---        Status Gizi Keseluruhan
--- =====================================================
--- Standar klasifikasi (WHO Child Growth Standards):
---   BB/U: Gizi Buruk | Kurang Gizi | Berat Badan Normal | Gizi Lebih
---   TB/U: Sangat Pendek | Pendek | Tinggi Normal | Tinggi
---   Status Keseluruhan: Kurang Gizi | Gizi Baik/Normal | Gizi Lebih
--- =====================================================
+
 
 CREATE TABLE IF NOT EXISTS `nutritional_status` (
   `id`                    INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -79,7 +63,3 @@ CREATE TABLE IF NOT EXISTS `nutritional_status` (
   COLLATE=utf8mb4_unicode_ci
   COMMENT='Tabel hasil analisis status gizi anak berdasarkan standar WHO';
 
--- =====================================================
--- Seed: Sample status gizi (sesuai desain Gambar 25)
--- ID measurement 1-8 sesuai data seed di tabel measurements
--- =====================================================

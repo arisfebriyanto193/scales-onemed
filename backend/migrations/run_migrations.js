@@ -1,31 +1,21 @@
-// =====================================================
-// run_migrations.js
-// Script untuk menjalankan semua file migrasi SQL
-// Aplikasi: PENTING (Pencegahan Stunting Terintegrasi)
-// Tanggal: 2026-06-04
-// =====================================================
-// Cara pakai:
-//   1. Pastikan MySQL sudah berjalan
-//   2. Buat file .env di folder backend/ (lihat .env.example)
-//   3. Jalankan: node migrations/run_migrations.js
-// =====================================================
+
 
 require('dotenv').config({ path: __dirname + '/../.env' });
 const mysql = require('mysql2/promise');
 const fs    = require('fs');
 const path  = require('path');
 
-// ── Konfigurasi koneksi dari environment variables ──
+
 const DB_CONFIG = {
   host    : process.env.DB_HOST     || 'localhost',
   port    : parseInt(process.env.DB_PORT || '3306'),
   user    : process.env.DB_USER     || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME     || 'penting_db',
-  multipleStatements: true, // wajib untuk eksekusi banyak statement
+  multipleStatements: true, 
 };
 
-// ── Daftar file migrasi (urutan penting!) ──
+
 const MIGRATION_FILES = [
   '001_create_users.sql',
   '002_create_children.sql',
@@ -39,7 +29,6 @@ const MIGRATION_FILES = [
   '010_add_status_kesehatan_to_measurements.sql',
 ];
 
-// ── Warna terminal untuk output ──
 const RESET  = '\x1b[0m';
 const GREEN  = '\x1b[32m';
 const RED    = '\x1b[31m';
