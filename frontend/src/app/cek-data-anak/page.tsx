@@ -113,7 +113,6 @@ export default function CekDataAnak() {
       },
     }
   };
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -124,7 +123,6 @@ export default function CekDataAnak() {
       position: 'relative',
       zIndex: 0
     }}>
-      {/* Decorative Blur Backgrounds */}
       <div style={{
         position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%',
         background: 'rgba(96, 165, 250, 0.1)', filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
@@ -134,8 +132,7 @@ export default function CekDataAnak() {
         background: 'rgba(52, 211, 153, 0.1)', filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
       }} />
 
-      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px' }}>
-        
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px' }}>       
         {/* Header */}
         <header style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -143,7 +140,7 @@ export default function CekDataAnak() {
               height: '52px', width: '52px', borderRadius: '14px', background: '#fff',
               boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px'
             }}>
-              <img src="/loogo.jpeg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/loogo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <div>
               <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--text-heading)', letterSpacing: '-0.5px' }}>PENTING</h1>

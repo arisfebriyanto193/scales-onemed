@@ -199,7 +199,7 @@ export default function KelolaUserPage() {
 
             <Field label="Role Akses *">
               <select className="input-penting" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
-                <option value="petugas">Petugas Posyandu</option>
+                <option value="petugas">Kader Posyandu</option>
                 <option value="admin">Administrator</option>
               </select>
             </Field>
