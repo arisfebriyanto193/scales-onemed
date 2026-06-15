@@ -40,11 +40,11 @@ export default function CekDataAnak() {
     labels: data?.measurements.map(m => {
       const date = new Date(m.tanggal_kunjungan);
       return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-    }).reverse() || [],
+    }) || [],
     datasets: [
       {
         label: 'Berat Badan (kg)',
-        data: data?.measurements.map(m => m.berat_badan).reverse() || [],
+        data: data?.measurements.map(m => m.berat_badan) || [],
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.5)',
         yAxisID: 'y',
@@ -56,7 +56,7 @@ export default function CekDataAnak() {
       },
       {
         label: 'Tinggi Badan (cm)',
-        data: data?.measurements.map(m => m.tinggi_badan).reverse() || [],
+        data: data?.measurements.map(m => m.tinggi_badan) || [],
         borderColor: '#10b981',
         backgroundColor: 'rgba(16, 185, 129, 0.5)',
         yAxisID: 'y1',
@@ -140,7 +140,7 @@ export default function CekDataAnak() {
               height: '52px', width: '52px', borderRadius: '14px', background: '#fff',
               boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px'
             }}>
-              <img src="/loogo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src="/logo.jpeg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <div>
               <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--text-heading)', letterSpacing: '-0.5px' }}>PENTING</h1>

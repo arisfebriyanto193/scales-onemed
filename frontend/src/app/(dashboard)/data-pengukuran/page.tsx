@@ -78,17 +78,17 @@ function useScaleAPI(enabled: boolean) {
 export default function DataPengukuranPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    const userStr = localStorage.getItem('penting_user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user.role === 'admin') {
-          router.replace('/dashboard');
-        }
-      } catch (e) {}
-    }
-  }, [router]);
+  // useEffect(() => {
+  //   const userStr = localStorage.getItem('penting_user');
+  //   if (userStr) {
+  //     try {
+  //       const user = JSON.parse(userStr);
+  //       if (user.role === 'admin') {
+  //         router.replace('/dashboard');
+  //       }
+  //     } catch (e) {}
+  //   }
+  // }, [router]);
 
   const [data, setData]         = useState<Measurement[]>([]);
   const [children, setChildren] = useState<Child[]>([]);
