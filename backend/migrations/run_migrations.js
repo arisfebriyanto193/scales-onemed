@@ -27,6 +27,7 @@ const MIGRATION_FILES = [
   '008_update_measurements_constraints.sql',
   '009_relax_lower_bounds.sql',
   '010_add_status_kesehatan_to_measurements.sql',
+  '011_edit_role.sql',
 ];
 
 const RESET  = '\x1b[0m';
