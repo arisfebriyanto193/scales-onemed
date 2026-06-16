@@ -4,11 +4,10 @@
  *  Alur: ESP32-A (BLE) → (UART TX→RX) → ESP32-B → WebSocket Server
  *        RFID RC522 → baca UID → WebSocket → Frontend → nama anak → OLED
  * ============================================================
- *
+
  *  Koneksi UART dari ESP32-A:
  *    ESP32-A TX2 (GPIO17) ──→ ESP32-B RX2 (GPIO16)
  *    ESP32-A GND           ──→ ESP32-B GND
- *
  *  Koneksi RFID RC522 (SPI):
  *    RC522 SDA/SS  ──→ GPIO5
  *    RC522 SCK     ──→ GPIO18
@@ -147,11 +146,12 @@ void saveConfigCallback() {
   shouldSaveConfig = true;
 }
 
-// ─────────────────── Konfigurasi Tombol HOLD ────────────────
-#define HOLD_PIN 13
+// ─────────────────── Konfigurasi Tombol HOLD/RESET ──────────
+#define HOLD_PIN      13    // GPIO 13 (aman, bukan strapping pin)
+#define DEBOUNCE_MS   50    // minimal tahan sebelum dihitung (ms)
+unsigned long buttonPressTime = 0;
+bool isButtonPressed = false;
 bool isHold = false;
-bool lastButtonState = HIGH;
-
 // ─────────────────── Konfigurasi UART dari espA ─────────────
 #define UART_BAUD   115200
 #define UART_RX_PIN 16
@@ -220,7 +220,6 @@ void oledShowStatus(const char* line1, const char* line2 = "", const char* line3
   oled.println(line3);
   oled.display();
 }
-
 // Tampilan: UID kartu terdeteksi
 void oledShowUID(const String& uid) {
   oledClear();
@@ -274,6 +273,36 @@ void oledShowUnknown(const String& uid) {
   oled.setCursor(0, 40);
   oled.println("Daftar di website!");
   oled.display();
+}
+
+// Tampilan: Data pengukuran (BB, TB, BMI)
+void oledShowData(float berat, float tinggi, float bmi) {
+  oledClear();
+  oledTitle("Hasil Pengukuran");
+  
+  oled.setTextSize(1);
+  oled.setCursor(0, 16);
+  oled.print("Berat  : ");
+  oled.print(berat, 2);
+  oled.println(" kg");
+
+  oled.setCursor(0, 30);
+  oled.print("Tinggi : ");
+  oled.print(tinggi, 1);
+  oled.println(" cm");
+
+  oled.setCursor(0, 44);
+  oled.print("BMI    : ");
+  oled.println(bmi, 1);
+  
+  oled.display();
+}
+
+// ─────────────────── Callback WiFiManager AP Mode ───────────
+void configModeCallback(WiFiManager *myWiFiManager) {
+  oledShowStatus("AP Mode", myWiFiManager->getConfigPortalSSID().c_str(), WiFi.softAPIP().toString().c_str());
+  Serial.println("[WIFI] Masuk AP Mode");
+  Serial.println(myWiFiManager->getConfigPortalSSID());
 }
 
 // ─────────────────── Callback WebSocket ─────────────────────
@@ -453,6 +482,7 @@ void setup() {
   // ── Koneksi WiFi (WiFiManager) ────────────────────────────
   WiFiManager wifiManager;
   wifiManager.setSaveConfigCallback(saveConfigCallback);
+  wifiManager.setAPCallback(configModeCallback);
   
   WiFiManagerParameter custom_ws_host("ws_host", "WS Host", ws_host.c_str(), 60);
   WiFiManagerParameter custom_ws_path("ws_path", "WS Path", ws_path.c_str(), 40);
@@ -478,7 +508,7 @@ void setup() {
   }
 
   Serial.println("\n✅ WiFi terhubung. IP: " + WiFi.localIP().toString());
-  oledShowStatus("WiFi: Terhubung", WiFi.localIP().toString().c_str(), "Menyambung WS...");
+  oledShowStatus("WiFi: Terhubung", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
 
   if (shouldSaveConfig) {
     ws_host = custom_ws_host.getValue();
@@ -510,19 +540,47 @@ void setup() {
 
 // ─────────────────── Loop ───────────────────────────────────
 void loop() {
-  // ── Handle Tombol HOLD ────────────────────────────────────
-  bool currentButtonState = digitalRead(HOLD_PIN);
-  if (currentButtonState == LOW && lastButtonState == HIGH) {
-    isHold = !isHold;
-    Serial.println(isHold ? "HOLD ON" : "HOLD OFF");
-    if (isHold) {
-      oledShowStatus("Status:", "HOLD AKTIF", "");
+  // ── Handle Tombol (Dual Function) ────────────────────────
+  // Tahan < 5 detik saat lepas → toggle HOLD
+  // Tahan >= 10 detik saat masih tertekan → reset WiFi ke AP mode
+  bool btnNow = (digitalRead(HOLD_PIN) == LOW);
+  if (btnNow) {
+    if (!isButtonPressed) {
+      // Catat waktu mulai tekan (debounce akan dicek saat lepas)
+      buttonPressTime = millis();
+      isButtonPressed = true;
     } else {
-      oledShowStatus("Status:", "HOLD MATI", "");
+      unsigned long held = millis() - buttonPressTime;
+      // Hanya proses jika sudah melewati debounce (pin benar-benar tertekan)
+      if (held >= DEBOUNCE_MS && held >= 10000) {
+        // Tahan 10 detik → reset WiFi
+        isButtonPressed = false;
+        Serial.println("[BTN] Tahan 10 detik → Reset WiFi");
+        oledShowStatus("Reset WiFi", "Lupakan WiFi...", "AP Mode aktif");
+        WiFiManager wifiManager;
+        wifiManager.resetSettings();
+        delay(2000);
+        ESP.restart();
+      }
     }
-    delay(200);
+  } else {
+    if (isButtonPressed) {
+      unsigned long held = millis() - buttonPressTime;
+      isButtonPressed = false;
+      // Abaikan jika terlalu singkat (noise/glitch < debounce)
+      if (held >= DEBOUNCE_MS && held < 5000) {
+        // Lepas < 5 detik (dan bukan glitch) → toggle HOLD
+        isHold = !isHold;
+        Serial.println(isHold ? "[BTN] HOLD ON" : "[BTN] HOLD OFF");
+        if (isHold) {
+          oledShowStatus("HOLD AKTIF", "Data ditahan", "Tekan lagi utk lanjut");
+        } else {
+          oledShowStatus("HOLD MATI", "Data mengalir", "WS: Terhubung");
+        }
+      }
+      // antara 5-10 detik → tidak ada aksi
+    }
   }
-  lastButtonState = currentButtonState;
 
   // ── Handle WebSocket ──────────────────────────────────────
   webSocket.loop();
@@ -566,10 +624,14 @@ void loop() {
 
         float berat = 0, tinggi = 0, bmi = 0;
         if (parseUartLine(uartBuffer, berat, tinggi, bmi)) {
+          Serial.printf("[PARSE] Berat=%.3f kg | Tinggi=%.1f cm | BMI=%.1f\n",
+                        berat, tinggi, bmi);
           if (!isHold) {
-            Serial.printf("[PARSE] Berat=%.3f kg | Tinggi=%.1f cm | BMI=%.1f\n",
-                          berat, tinggi, bmi);
             sendToWebSocket(berat, tinggi, bmi);
+            // Tampilkan di OLED jika tidak sedang menampilkan data anak
+            if (childName.length() == 0) {
+              oledShowData(berat, tinggi, bmi);
+            }
           } else {
             Serial.println("[HOLD] Data diabaikan (Hold Aktif)");
           }
@@ -582,6 +644,5 @@ void loop() {
       uartBuffer += c;
     }
   }
-
   delay(10);
 }
