@@ -47,3 +47,4 @@ Buka tab terminal baru untuk menjalankan frontend.
    *(Frontend akan berjalan di port default Next.js, biasanya `http://localhost:3000`)*
 
 Sekarang Anda bisa mengakses aplikasi melalui browser di `http://localhost:3000`.
+
