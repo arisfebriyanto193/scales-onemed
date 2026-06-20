@@ -1,5 +1,7 @@
 # scales-onemed
 
+## Dokumentasi hardware: ./hadware.md
+
 ## Cara Menjalankan Program
 
 ### 1. Persiapan Database & Backend
