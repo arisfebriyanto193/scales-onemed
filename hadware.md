@@ -16,7 +16,8 @@ Kedua ESP ini berkomunikasi satu arah menggunakan pin **Serial UART (Hardware Se
 ---
 
 ## 2. Skema Pin dan Wiring (Pinout)
-![Rangkaian] (/Rangkaian/ESP32_Boards_bb.png)
+![Rangkaian](/Rangkaian/ESP32_Boards_bb.png)
+
 Sistem ini menggunakan dua mikrokontroler ESP32 dengan pengkabelan sebagai berikut:
 
 ### Komunikasi Antar ESP32 (UART)
