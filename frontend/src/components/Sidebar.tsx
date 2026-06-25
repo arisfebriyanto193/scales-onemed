@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -48,6 +49,17 @@ const NAV = [
 export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void }) {
   const pathname = usePathname();
   const router   = useRouter();
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('penting_user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setRole(user.role);
+      } catch (e) {}
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('penting_token');
@@ -76,7 +88,7 @@ export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void 
             flexShrink: 0,
             overflow: 'hidden',
           }}>
-            <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
+            <img src="/logotrans.png" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
           </div>
 
         </div>
@@ -87,7 +99,7 @@ export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void 
         <p style={{ fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '4px 10px 10px' }}>
           MENU UTAMA
         </p>
-        {NAV.map(({ href, label, Icon }) => {
+        {NAV.filter(item => !(item.label === 'Data Pengukuran ')).map(({ href, label, Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/');
           return (
             <Link key={href} href={href} onClick={onCloseMobile} style={{ textDecoration: 'none', display: 'block', marginBottom: '3px' }}>

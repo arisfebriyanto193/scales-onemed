@@ -1,20 +1,4 @@
-/**
- * ============================================================
- *  ESP32-A — BLE Client SENSSUN GROWTH
- *  Alur: Timbangan BLE → ESP32-A → (UART TX→RX) → ESP32-B
- * ============================================================
- *
- *  Koneksi UART ke ESP32-B:
- *    ESP32-A TX2 (GPIO17) ──→ ESP32-B RX2 (GPIO16)
- *    ESP32-A GND           ──→ ESP32-B GND
- *
- *  Format data yang dikirim ke espB via Serial2:
- *    "BERAT:xx.x;TINGGI:xxx.x;BMI:xx.x\n"
- *
- *  Library yang diperlukan:
- *    - BLE (bawaan ESP32 Arduino Core)
- * ============================================================
- */
+
 
 #include <Arduino.h>
 #include <BLEDevice.h>

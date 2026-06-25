@@ -1,14 +1,4 @@
--- =====================================================
--- Migration: 005_create_growth_references.sql
--- Deskripsi: Tabel referensi standar pertumbuhan WHO
---            (data kurva pertumbuhan untuk dashboard Gambar 22)
--- Aplikasi: PENTING (Pencegahan Stunting Terintegrasi)
--- Tanggal: 2026-06-04
--- =====================================================
--- Data ini digunakan untuk menggambar grafik kurva
--- pertumbuhan standar WHO di halaman Dashboard
--- SD = Standard Deviation (z-score)
--- =====================================================
+
 
 CREATE TABLE IF NOT EXISTS `growth_references` (
   `id`            INT UNSIGNED  NOT NULL AUTO_INCREMENT,

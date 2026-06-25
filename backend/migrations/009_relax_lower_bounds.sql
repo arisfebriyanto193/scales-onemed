@@ -1,7 +1,3 @@
--- =====================================================
--- Migration: 009_relax_lower_bounds.sql
--- Deskripsi: Menurunkan batas minimal berat dan tinggi badan untuk testing IoT
--- =====================================================
 
 -- Hapus constraints lama
 ALTER TABLE `measurements` DROP CONSTRAINT `chk_berat_badan`;

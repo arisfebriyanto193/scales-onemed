@@ -1,9 +1,3 @@
--- =====================================================
--- Migration: 001_create_users.sql
--- Deskripsi: Membuat tabel users untuk autentikasi
--- Aplikasi: PENTING (Pencegahan Stunting Terintegrasi)
--- Tanggal: 2026-06-04
--- =====================================================
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id`         INT UNSIGNED    NOT NULL AUTO_INCREMENT,
@@ -22,11 +16,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   COLLATE=utf8mb4_unicode_ci
   COMMENT='Tabel pengguna sistem PENTING';
 
--- =====================================================
--- Seed: Insert default admin user
--- Password default: admin123 (harus diganti setelah login pertama)
--- Hash bcrypt untuk "admin123": $2b$10$...
--- =====================================================
+
 INSERT INTO `users` (`username`, `password`, `nama_lengkap`, `role`)
 VALUES (
   'admin',

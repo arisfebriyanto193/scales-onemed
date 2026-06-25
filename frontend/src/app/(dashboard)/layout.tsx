@@ -20,7 +20,7 @@ const IconBell = () => (
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<{ nama_lengkap?: string; username?: string } | null>(null);
+  const [user, setUser] = useState<{ nama_lengkap?: string; username?: string; role?: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -104,7 +104,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', lineHeight: 1.2 }}>
                   {user?.nama_lengkap || user?.username || 'Pengguna'}
                 </p>
-                <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '1px' }}>Petugas Posyandu</p>
+                <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '1px' }}>
+                  {user?.role === 'admin' ? 'Administrator' : 'Kader Posyandu'}
+                </p>
               </div>
             </div>
           </div>

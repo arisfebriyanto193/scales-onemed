@@ -151,7 +151,7 @@ export default function LoginPage() {
               overflow: 'hidden',
               flexShrink: 0,
             }}>
-              <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
+              <img src="/logo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
             </div>
             <div>
               <div style={{ color: 'white', fontWeight: 800, fontSize: '1.1rem' }}>PENTING</div>
@@ -194,15 +194,12 @@ export default function LoginPage() {
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <div style={{
               height: '54px',
-              borderRadius: '8px',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '14px',
-              overflow: 'hidden',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
             }}>
-              <img src="/loogo.jpeg" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
+              <img src="/logotrans.png?v=2" alt="Logo" style={{ height: '100%', width: 'auto', objectFit: 'contain' }} />
             </div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>
               Selamat Datang
