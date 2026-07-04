@@ -531,8 +531,20 @@ void setup() {
   }
   preferences.end();
 
-  // ── Init WebSocket (SSL) ───────────────────────────────────
-  webSocket.beginSSL(ws_host.c_str(), ws_port, ws_path.c_str());
+  // ── Init WebSocket (Otomatis WS / WSS) ─────────────────────
+  if (ws_port == 443) {
+    webSocket.beginSSL(ws_host.c_str(), ws_port, ws_path.c_str());
+    Serial.println("[WS] Menggunakan koneksi WSS (SSL)");
+    Serial.println("HOST : " + ws_host);
+    Serial.println("PORT : " + ws_port);
+    Serial.println("PATH : " + ws_path);
+  } else {
+    webSocket.begin(ws_host.c_str(), ws_port, ws_path.c_str());
+    Serial.println("HOST : " + ws_host);
+    Serial.println("PORT : " + ws_port);
+    Serial.println("PATH : " + ws_path);
+    Serial.println("[WS] Menggunakan koneksi WS biasa (Non-SSL)");
+  }
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
   Serial.println("[WS] Menghubungkan ke WebSocket server...");
