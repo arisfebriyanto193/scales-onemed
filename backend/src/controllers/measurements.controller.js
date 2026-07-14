@@ -35,7 +35,7 @@ const getAll = async (req, res) => {
     if (child_id) { sql += ' AND m.child_id = ?'; params.push(child_id); }
     if (search)   { sql += ' AND c.nama_anak LIKE ?'; params.push(`%${search}%`); }
 
-    sql += ' ORDER BY m.tanggal_kunjungan DESC';
+    sql += ' ORDER BY m.id DESC';
 
     const [rows] = await db.query(sql, params);
 
@@ -73,7 +73,7 @@ const getByChildId = async (req, res) => {
     const [rows] = await db.query(
       `SELECT m.*, c.nama_anak, c.tanggal_lahir, c.jenis_kelamin
        FROM measurements m JOIN children c ON m.child_id = c.id
-       WHERE m.child_id = ? ORDER BY m.tanggal_kunjungan ASC`,
+       WHERE m.child_id = ? ORDER BY m.id DESC`,
       [req.params.childId]
     );
     const data = rows.map(r => ({ ...r, usia_teks: formatUsia(r.usia_bulan) }));

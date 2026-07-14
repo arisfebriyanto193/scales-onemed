@@ -145,7 +145,7 @@ export default function DataPengukuranPage() {
   const openEdit = (m: Measurement) => {
     setForm({
       child_id: String(m.child_id),
-      tanggal_kunjungan: m.tanggal_kunjungan?.split('T')[0] || '',
+      tanggal_kunjungan: m.tanggal_kunjungan?.substring(0, 10) || '',
       berat_badan: String(m.berat_badan),
       tinggi_badan: String(m.tinggi_badan),
       catatan: m.catatan || '',
@@ -288,7 +288,7 @@ export default function DataPengukuranPage() {
                 <tr key={m.id}>
                   <td style={{ fontWeight: 600, color: '#64748b' }}>{m.id}</td>
                   <td style={{ fontWeight: 600 }}>{m.nama_anak}</td>
-                  <td>{m.tanggal_lahir?.split('T')[0]}</td>
+                  <td>{m.tanggal_lahir?.substring(0, 10)}</td>
                   <td><span className="badge badge-normal">{m.usia_teks}</span></td>
                   <td>
                     <span className={`badge ${m.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`}>
@@ -297,7 +297,7 @@ export default function DataPengukuranPage() {
                   </td>
                   <td style={{ fontWeight: 600 }}>{m.berat_badan} kg</td>
                   <td style={{ fontWeight: 600 }}>{m.tinggi_badan} cm</td>
-                  <td>{m.tanggal_kunjungan?.split('T')[0]}</td>
+                  <td>{m.tanggal_kunjungan?.substring(0, 10)}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }}

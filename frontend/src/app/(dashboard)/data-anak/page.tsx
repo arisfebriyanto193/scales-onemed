@@ -172,7 +172,7 @@ function DataAnakInner() {
   const openEdit = (c: Child) => {
     setForm({
       nik: c.nik, nama_anak: c.nama_anak, jenis_kelamin: c.jenis_kelamin,
-      tanggal_lahir: c.tanggal_lahir?.split('T')[0] || '',
+      tanggal_lahir: c.tanggal_lahir?.substring(0, 10) || '',
       nama_orang_tua: c.nama_orang_tua, alamat: c.alamat,
       wilayah: c.wilayah || '', nomor_telepon: c.nomor_telepon || '',
       rfid_uid: c.rfid_uid || '',
@@ -296,7 +296,7 @@ function DataAnakInner() {
                       {c.jenis_kelamin === 'Laki-laki' ? '♂' : '♀'} {c.jenis_kelamin}
                     </span>
                   </td>
-                  <td>{c.tanggal_lahir?.split('T')[0]}</td>
+                  <td>{c.tanggal_lahir?.substring(0, 10)}</td>
                   <td>{c.nama_orang_tua}</td>
                   <td>{c.wilayah || '-'}</td>
                   <td>{c.nomor_telepon || '-'}</td>
