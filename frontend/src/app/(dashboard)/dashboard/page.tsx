@@ -51,6 +51,7 @@ interface GrowthRef {
   sd_minus2: number;
   median: number;
   sd_plus2: number;
+  sd_plus3: number;
 }
 
 export default function DashboardPage() {
@@ -114,6 +115,7 @@ export default function DashboardPage() {
         { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0, fill: false },
         { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 0, fill: false },
         { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e', borderWidth: 1.5, pointRadius: 0, fill: false },
+        { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
       ],
     };
   };
