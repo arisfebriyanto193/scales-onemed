@@ -119,7 +119,7 @@ export default function DashboardPage() {
       ],
     };
   };
-
+  
   const statCards = [
     { label: 'Total Anak', value: stats?.total_anak ?? '-', icon: <IconBaby />, color: '#ffffff', iconBg: '#eff6ff', iconColor: '#2563eb' },
     { label: 'Total Pengukuran', value: stats?.total_pengukuran ?? '-', icon: <IconRuler />, color: '#ffffff', iconBg: '#f5f3ff', iconColor: '#7c3aed' },
