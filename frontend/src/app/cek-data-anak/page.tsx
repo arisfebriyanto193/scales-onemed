@@ -16,21 +16,29 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export default function CekDataAnak() {
   const router = useRouter();
   const [nik, setNik] = useState('');
+  const [tanggalLahir, setTanggalLahir] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState<{ child: any, measurements: any[] } | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nik) return;
+    if (!nik || !tanggalLahir) return;
     setLoading(true);
     setError('');
     setData(null);
     try {
-      const res = await api.get(`/children/public/by-nik/${nik}`);
+      // Step 1: Verify NIK and Date of Birth
+      const verifyRes = await api.post(`/children/public/verify`, { nik, tanggal_lahir: tanggalLahir });
+      const token = verifyRes.data.token;
+
+      // Step 2: Fetch data using JWT token
+      const res = await api.get(`/children/public/by-nik/${nik}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setData(res.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal mencari data anak. Pastikan NIK benar.');
+      setError(err.response?.data?.message || 'Gagal mencari data anak. Pastikan NIK dan Tanggal Lahir benar.');
     } finally {
       setLoading(false);
     }
@@ -39,32 +47,32 @@ export default function CekDataAnak() {
   const chartData = {
     labels: data?.measurements.map(m => {
       const date = new Date(m.tanggal_kunjungan);
-      return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
     }) || [],
     datasets: [
       {
         label: 'Berat Badan (kg)',
         data: data?.measurements.map(m => m.berat_badan) || [],
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+        borderColor: '#3b82f6' /* Tailwind blue-500 */,
+        backgroundColor: '#3b82f6',
         yAxisID: 'y',
         tension: 0.4,
-        pointBackgroundColor: '#3b82f6',
         borderWidth: 3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointStyle: 'circle'
       },
       {
         label: 'Tinggi Badan (cm)',
         data: data?.measurements.map(m => m.tinggi_badan) || [],
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+        borderColor: '#10b981' /* Tailwind green-500 */,
+        backgroundColor: '#10b981',
         yAxisID: 'y1',
         tension: 0.4,
-        pointBackgroundColor: '#10b981',
         borderWidth: 3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointStyle: 'triangle'
       }
     ]
   };
@@ -88,6 +96,7 @@ export default function CekDataAnak() {
         bodyFont: { family: "'Plus Jakarta Sans', 'Inter', sans-serif", size: 13 },
         padding: 12,
         cornerRadius: 8,
+        usePointStyle: true,
       }
     },
     scales: {
@@ -113,6 +122,12 @@ export default function CekDataAnak() {
       },
     }
   };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -125,11 +140,11 @@ export default function CekDataAnak() {
     }}>
       <div style={{
         position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%',
-        background: 'rgba(96, 165, 250, 0.1)', filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
+        background: 'rgba(96, 165, 250, 0.1)' /* Tailwind blue-400 */, filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
       }} />
       <div style={{
         position: 'absolute', top: '20%', right: '-10%', width: '40%', height: '40%',
-        background: 'rgba(52, 211, 153, 0.1)', filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
+        background: 'rgba(52, 211, 153, 0.1)' /* Tailwind emerald-400 */, filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
       }} />
 
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px' }}>       
@@ -162,42 +177,64 @@ export default function CekDataAnak() {
             Pantau Pertumbuhan <span style={{ background: 'linear-gradient(to right, #2563eb, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Anak Anda</span>
           </h2>
           <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', marginBottom: '32px', maxWidth: '700px', lineHeight: 1.6 }}>
-            Masukkan Nomor Induk Kependudukan (NIK) anak untuk melihat riwayat pertumbuhan, status gizi, dan grafik pengukuran Posyandu secara detail.
+            Masukkan NIK dan Tanggal Lahir anak untuk melihat riwayat pertumbuhan dan grafik pengukuran secara aman.
           </p>
 
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '16px', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex', pointerEvents: 'none' }}>
-                <CreditCard size={22} />
+          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '16px', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex', pointerEvents: 'none' }}>
+                  <CreditCard size={22} />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Masukkan 16 digit NIK Anak..."
+                  value={nik}
+                  onChange={e => setNik(e.target.value.replace(/\D/g, ''))}
+                  maxLength={16}
+                  style={{
+                    width: '100%', padding: '18px 20px 18px 50px', background: 'rgba(255, 255, 255, 0.6)',
+                    border: '2px solid var(--border)', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 500,
+                    outline: 'none', transition: 'all 0.2s', color: 'var(--text-main)'
+                  }}
+                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.background = 'rgba(255, 255, 255, 0.6)'; }}
+                  required
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Masukkan 16 digit NIK Anak..."
-                value={nik}
-                onChange={e => setNik(e.target.value.replace(/\D/g, ''))}
-                maxLength={16}
-                style={{
-                  width: '100%', padding: '18px 20px 18px 50px', background: 'rgba(255, 255, 255, 0.6)',
-                  border: '2px solid var(--border)', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 500,
-                  outline: 'none', transition: 'all 0.2s', color: 'var(--text-main)'
-                }}
-                onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.background = '#fff'; }}
-                onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.background = 'rgba(255, 255, 255, 0.6)'; }}
-                required
-              />
+
+              <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '16px', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex', pointerEvents: 'none' }}>
+                  <Calendar size={22} />
+                </div>
+                <input
+                  type="date"
+                  value={tanggalLahir}
+                  onChange={e => setTanggalLahir(e.target.value)}
+                  style={{
+                    width: '100%', padding: '18px 20px 18px 50px', background: 'rgba(255, 255, 255, 0.6)',
+                    border: '2px solid var(--border)', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 500,
+                    outline: 'none', transition: 'all 0.2s', color: 'var(--text-main)'
+                  }}
+                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.background = 'rgba(255, 255, 255, 0.6)'; }}
+                  required
+                />
+              </div>
+
+              <button type="submit" disabled={loading || nik.length < 16 || !tanggalLahir} className="btn-primary" style={{
+                padding: '0 32px', height: '64px', borderRadius: '16px', fontSize: '1.1rem', background: '#0f172a',
+                boxShadow: '0 10px 25px -5px rgba(15,23,42,0.3)', transition: 'all 0.2s', border: 'none', cursor: 'pointer'
+              }}>
+                {loading ? (
+                  <div style={{ width: '24px', height: '24px', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Search size={20} /> Cari Data
+                  </div>
+                )}
+              </button>
             </div>
-            <button type="submit" disabled={loading || nik.length < 16} className="btn-primary" style={{
-              padding: '0 32px', height: '64px', borderRadius: '16px', fontSize: '1.1rem', background: '#0f172a',
-              boxShadow: '0 10px 25px -5px rgba(15,23,42,0.3)', transition: 'all 0.2s', border: 'none'
-            }}>
-              {loading ? (
-                <div style={{ width: '24px', height: '24px', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-              ) : (
-                <>
-                  <Search size={20} /> Cari Data
-                </>
-              )}
-            </button>
           </form>
 
           {error && (
@@ -249,7 +286,7 @@ export default function CekDataAnak() {
                     <Calendar size={16} /> <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.5px' }}>TANGGAL LAHIR</span>
                   </div>
                   <p style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>
-                    {new Date(data.child.tanggal_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {formatDate(data.child.tanggal_lahir)}
                   </p>
                 </div>
                 <div>
@@ -258,8 +295,8 @@ export default function CekDataAnak() {
                   </div>
                   <div style={{ marginTop: '4px' }}>
                     <span className="badge" style={{
-                      background: data.child.jenis_kelamin === 'L' ? '#eff6ff' : '#fdf2f8',
-                      color: data.child.jenis_kelamin === 'L' ? '#1d4ed8' : '#be185d',
+                      background: data.child.jenis_kelamin === 'L' ? '#eff6ff' : '#fdf2f8' /* Tailwind blue-50 : pink-50 */,
+                      color: data.child.jenis_kelamin === 'L' ? '#1d4ed8' : '#be185d' /* Tailwind blue-700 : pink-700 */,
                       border: `1px solid ${data.child.jenis_kelamin === 'L' ? '#bfdbfe' : '#fbcfe8'}`,
                       padding: '6px 12px', fontSize: '0.8rem'
                     }}>
@@ -304,10 +341,10 @@ export default function CekDataAnak() {
                 </div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table className="table-penting" style={{ border: 'none' }}>
+                  <table className="table-penting" style={{ border: 'none', minWidth: '100%' }}>
                     <thead style={{ background: '#f8fafc' }}>
                       <tr>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Tanggal</th>
+                        <th style={{ padding: '20px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Tanggal</th>
                         <th style={{ padding: '20px', fontSize: '0.8rem' }}>Usia</th>
                         <th style={{ padding: '20px', fontSize: '0.8rem' }}>Berat Badan</th>
                         <th style={{ padding: '20px', fontSize: '0.8rem' }}>Tinggi Badan</th>
@@ -318,9 +355,9 @@ export default function CekDataAnak() {
                     </thead>
                     <tbody>
                       {data.measurements.map((m, i) => (
-                        <tr key={i} style={{ transition: 'background 0.2s' }}>
+                        <tr key={i} style={{ transition: 'background 0.2s', borderBottom: '1px solid #f1f5f9' }}>
                           <td style={{ padding: '20px', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
-                            {new Date(m.tanggal_kunjungan).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {formatDate(m.tanggal_kunjungan)}
                           </td>
                           <td style={{ padding: '20px', color: 'var(--text-muted)' }}>
                             {m.usia_bulan} bulan
@@ -345,7 +382,7 @@ export default function CekDataAnak() {
                                 : m.status_bb_u?.includes('Lebih') || m.status_bb_u?.includes('Risiko')
                                 ? 'badge-kurang'
                                 : 'badge-normal'
-                            }`} style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
+                            }`} style={{ padding: '6px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                               {m.status_bb_u || '-'}
                             </span>
                           </td>
@@ -356,7 +393,7 @@ export default function CekDataAnak() {
                                 : m.status_tb_u?.includes('Tinggi')
                                 ? 'badge-kurang'
                                 : 'badge-normal'
-                            }`} style={{ padding: '6px 14px', fontSize: '0.8rem' }}>
+                            }`} style={{ padding: '6px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                               {m.status_tb_u || '-'}
                             </span>
                           </td>

@@ -7,7 +7,10 @@ const router     = express.Router();
 const controller = require('../controllers/children.controller');
 const { authenticate } = require('../middleware/auth.middleware');
 
-// GET    /api/children/public/by-nik/:nik - Akses publik data anak via NIK
+// POST   /api/children/public/verify - Verifikasi 2 langkah untuk orang tua
+router.post('/public/verify', controller.verifyParentAccess);
+
+// GET    /api/children/public/by-nik/:nik - Akses publik data anak via NIK (butuh JWT)
 router.get('/public/by-nik/:nik', controller.getPublicByNik);
 
 // Semua route butuh autentikasi

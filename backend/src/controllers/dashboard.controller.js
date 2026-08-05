@@ -76,4 +76,46 @@ const getGrowthChart = async (req, res) => {
   }
 };
 
-module.exports = { getStats, getGrowthChart };
+// GET /api/dashboard/stats/details?type=stunting|normal
+const getStatDetails = async (req, res) => {
+  try {
+    const { type } = req.query;
+    let query = '';
+    let params = [];
+
+    // Base query logic to get the latest measurement status for each child
+    if (type === 'stunting') {
+      query = `
+        SELECT c.id, c.nik, c.nama_anak, c.jenis_kelamin, ns.status_keseluruhan
+        FROM children c
+        JOIN measurements m ON c.id = m.child_id
+        JOIN nutritional_status ns ON m.id = ns.measurement_id
+        WHERE ns.is_stunting = 1
+        GROUP BY c.id
+      `;
+    } else if (type === 'normal') {
+      query = `
+        SELECT c.id, c.nik, c.nama_anak, c.jenis_kelamin, ns.status_keseluruhan
+        FROM children c
+        JOIN measurements m ON c.id = m.child_id
+        JOIN nutritional_status ns ON m.id = ns.measurement_id
+        WHERE ns.status_keseluruhan = "Gizi Baik/Normal"
+        GROUP BY c.id
+      `;
+    } else {
+      return res.status(400).json({ success: false, message: 'Tipe tidak valid.' });
+    }
+
+    const [rows] = await db.query(query, params);
+
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error('dashboard.getStatDetails:', err);
+    res.status(500).json({ success: false, message: 'Gagal mengambil detail statistik.' });
+  }
+};
+
+module.exports = { getStats, getGrowthChart, getStatDetails };

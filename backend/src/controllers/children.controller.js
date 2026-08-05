@@ -4,12 +4,70 @@
 // =====================================================
 
 const db = require('../config/database');
+const jwt = require('jsonwebtoken');
+
+// POST /api/children/public/verify
+const verifyParentAccess = async (req, res) => {
+  try {
+    const { nik, tanggal_lahir } = req.body;
+    if (!nik || !tanggal_lahir) {
+      return res.status(400).json({ success: false, message: 'NIK dan Tanggal Lahir wajib diisi.' });
+    }
+
+    const [childrenRows] = await db.query('SELECT * FROM children WHERE nik = ? LIMIT 1', [nik]);
+    if (childrenRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Data anak tidak ditemukan.' });
+    }
+
+    const child = childrenRows[0];
+    
+    // Check Date of Birth
+    const dbDate = new Date(child.tanggal_lahir).toISOString().split('T')[0];
+    const inputDate = new Date(tanggal_lahir).toISOString().split('T')[0];
+
+    if (dbDate !== inputDate) {
+      return res.status(401).json({ success: false, message: 'Tanggal Lahir salah.' });
+    }
+
+    // Generate JWT token for parent access (valid for 1 hour)
+    const token = jwt.sign(
+      { role: 'parent', nik: child.nik, child_id: child.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({ success: true, message: 'Verifikasi berhasil', token });
+  } catch (err) {
+    console.error('children.verifyParentAccess:', err);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan saat verifikasi.' });
+  }
+};
 
 // GET /api/children/public/by-nik/:nik
 const getPublicByNik = async (req, res) => {
   try {
+    // Verifikasi Token JWT Orang Tua
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Akses ditolak. Token tidak ditemukan.' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(403).json({ success: false, message: 'Token tidak valid atau sudah kadaluarsa.' });
+    }
+
     const { nik } = req.params;
     if (!nik) return res.status(400).json({ success: false, message: 'NIK tidak boleh kosong.' });
+
+    // Ensure the requested NIK matches the token NIK
+    if (decoded.role === 'parent' && decoded.nik !== nik) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke data anak ini.' });
+    }
 
     // Cari anak berdasarkan NIK
     const [childrenRows] = await db.query('SELECT * FROM children WHERE nik = ? LIMIT 1', [nik]);
@@ -186,4 +244,4 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getByRfid, getById, create, update, remove, getPublicByNik };
+module.exports = { getAll, getByRfid, getById, create, update, remove, getPublicByNik, verifyParentAccess };

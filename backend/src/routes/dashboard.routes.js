@@ -12,6 +12,9 @@ router.use(authenticate);
 // GET /api/dashboard/stats         - Statistik ringkasan (total anak, stunting, dll)
 router.get('/stats',          controller.getStats);
 
+// GET /api/dashboard/stats/details - Detail anak per kategori
+router.get('/stats/details',  controller.getStatDetails);
+
 // GET /api/dashboard/growth-chart  - Data kurva pertumbuhan WHO + data aktual
 //     Query: ?jenis_kelamin=Laki-laki&tipe=BB_U
 router.get('/growth-chart',   controller.getGrowthChart);
