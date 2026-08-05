@@ -118,12 +118,12 @@ export default function DashboardPage() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' as const, labels: { font: { size: 11 }, usePointStyle: true } },
+      legend: { position: 'top' as const, labels: { font: { size: 10 }, usePointStyle: true, boxWidth: 6 } },
       title: { display: false },
     },
     scales: {
-      x: { grid: { color: '#f1f5f9' /* Tailwind slate-100 */ }, title: { display: true, text: 'Usia (bulan)' } },
-      y: { grid: { color: '#f1f5f9' }, title: { display: true, text: label } },
+      x: { grid: { color: '#f1f5f9' /* Tailwind slate-100 */ }, title: { display: true, text: 'Usia (bulan)', font: { size: 10 } }, ticks: { font: { size: 9 } } },
+      y: { grid: { color: '#f1f5f9' }, title: { display: true, text: label, font: { size: 10 } }, ticks: { font: { size: 9 } } },
     },
   });
 
@@ -135,7 +135,7 @@ export default function DashboardPage() {
       datasets: [
         { label: '-3 SD', data: refs.map(r => r.sd_minus3), borderColor: '#ef4444' /* Tailwind red-500 */, borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
         { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b' /* Tailwind amber-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
-        { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 4, pointStyle, backgroundColor: color, fill: false },
+        { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 3, pointStyle, backgroundColor: color, fill: false },
         { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e' /* Tailwind green-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
         { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
       ],
@@ -143,18 +143,18 @@ export default function DashboardPage() {
   };
   
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', padding: '24px', overflow: 'hidden', background: '#f8fafc' /* Tailwind slate-50 */ }}>
+    <div className="page-content" style={{ height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
-        <h1 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#1e293b' /* Tailwind slate-800 */ }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexShrink: 0 }}>
+        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b' /* Tailwind slate-800 */ }}>
           Dashboard Posyandu
         </h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <label style={{ fontSize: '0.9rem', fontWeight: 600, color: '#475569' /* Tailwind slate-600 */ }}>Filter Grafik:</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' /* Tailwind slate-600 */ }}>Filter Grafik:</label>
           <select 
             className="input-penting" 
-            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' /* Tailwind slate-300 */, background: '#fff' }}
+            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' /* Tailwind slate-300 */, background: '#fff', fontSize: '0.85rem' }}
             value={gender}
             onChange={(e) => setGender(e.target.value as 'Laki-laki' | 'Perempuan')}
           >
@@ -164,52 +164,52 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '16px', marginBottom: '24px', flexShrink: 0 }}>
+      {/* Stat Cards - Reduced padding and text size */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '12px', flexShrink: 0 }}>
         
-        {/* Total Anak - Navigates to Data Anak */}
-        <div onClick={() => router.push('/data-anak')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', background: '#eff6ff' /* Tailwind blue-50 */, color: '#2563eb' /* Tailwind blue-600 */ }}><IconBaby /></div>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>Total Anak</p>
-          <p style={{ fontSize: '1.6rem', fontWeight: 700, color: '#1e293b' }}>{loading ? '...' : stats?.total_anak ?? '-'}</p>
+        {/* Total Anak */}
+        <div onClick={() => router.push('/data-anak')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#eff6ff' /* Tailwind blue-50 */, color: '#2563eb' /* Tailwind blue-600 */ }}><IconBaby /></div>
+          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Total Anak</p>
+          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_anak ?? '-'}</p>
         </div>
 
-        {/* Total Pengukuran - Navigates to Data Pengukuran */}
-        <div onClick={() => router.push('/data-pengukuran')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', background: '#f5f3ff' /* Tailwind violet-50 */, color: '#7c3aed' /* Tailwind violet-600 */ }}><IconRuler /></div>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>Total Pengukuran</p>
-          <p style={{ fontSize: '1.6rem', fontWeight: 700, color: '#1e293b' }}>{loading ? '...' : stats?.total_pengukuran ?? '-'}</p>
+        {/* Total Pengukuran */}
+        <div onClick={() => router.push('/data-pengukuran')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#f5f3ff' /* Tailwind violet-50 */, color: '#7c3aed' /* Tailwind violet-600 */ }}><IconRuler /></div>
+          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Total Pengukuran</p>
+          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_pengukuran ?? '-'}</p>
         </div>
 
-        {/* Terindikasi Stunting - Opens Modal */}
-        <div onClick={() => openModal('stunting')} style={{ background: '#ffffff', border: '1px solid #fecaca' /* Tailwind red-200 */, padding: '16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', background: '#fef2f2' /* Tailwind red-50 */, color: '#dc2626' /* Tailwind red-600 */ }}><IconWarning /></div>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>Terindikasi Stunting</p>
-          <p style={{ fontSize: '1.6rem', fontWeight: 700, color: '#1e293b' }}>{loading ? '...' : stats?.total_stunting ?? '-'}</p>
+        {/* Terindikasi Stunting */}
+        <div onClick={() => openModal('stunting')} style={{ background: '#ffffff', border: '1px solid #fecaca' /* Tailwind red-200 */, padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#fef2f2' /* Tailwind red-50 */, color: '#dc2626' /* Tailwind red-600 */ }}><IconWarning /></div>
+          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Terindikasi Stunting</p>
+          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_stunting ?? '-'}</p>
         </div>
 
-        {/* Gizi Baik - Opens Modal */}
-        <div onClick={() => openModal('normal')} style={{ background: '#ffffff', border: '1px solid #bbf7d0' /* Tailwind green-200 */, padding: '16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', background: '#f0fdf4' /* Tailwind green-50 */, color: '#16a34a' /* Tailwind green-600 */ }}><IconCheck /></div>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>Gizi Baik/Normal</p>
-          <p style={{ fontSize: '1.6rem', fontWeight: 700, color: '#1e293b' }}>{loading ? '...' : stats?.total_normal ?? '-'}</p>
+        {/* Gizi Baik */}
+        <div onClick={() => openModal('normal')} style={{ background: '#ffffff', border: '1px solid #bbf7d0' /* Tailwind green-200 */, padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#f0fdf4' /* Tailwind green-50 */, color: '#16a34a' /* Tailwind green-600 */ }}><IconCheck /></div>
+          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Gizi Baik/Normal</p>
+          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_normal ?? '-'}</p>
         </div>
 
       </div>
 
-      {/* Growth Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', flex: 1, minHeight: 0 }}>
+      {/* Growth Charts - Constrained height so they don't stretch */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1, minHeight: 0, paddingBottom: '8px' }}>
         {/* BB */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h3 style={{
-            fontSize: '0.95rem', fontWeight: 700, marginBottom: '12px',
-            paddingBottom: '12px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
-            display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0
+            fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px',
+            paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
+            display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
           }}>
             <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
             Berat Badan {gender === 'Laki-laki' ? 'Anak Laki-laki' : 'Anak Perempuan'} (BB/U)
           </h3>
-          <div style={{ flex: 1, position: 'relative' }}>
+          <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
             {loading ? (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>Memuat grafik...</div>
             ) : bbRef.length > 0 ? (
@@ -221,16 +221,16 @@ export default function DashboardPage() {
         </div>
 
         {/* TB */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h3 style={{
-            fontSize: '0.95rem', fontWeight: 700, marginBottom: '12px',
-            paddingBottom: '12px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
-            display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0
+            fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px',
+            paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
+            display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
           }}>
             <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
             Tinggi Badan {gender === 'Laki-laki' ? 'Anak Laki-laki' : 'Anak Perempuan'} (TB/U)
           </h3>
-          <div style={{ flex: 1, position: 'relative' }}>
+          <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
             {loading ? (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>Memuat grafik...</div>
             ) : tbRef.length > 0 ? (
@@ -244,48 +244,48 @@ export default function DashboardPage() {
 
       {/* Modal Popup */}
       {modalType && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: '#fff', width: '100%', maxWidth: '600px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: '#fff', width: '100%', maxWidth: '600px', borderRadius: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
             
-            <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: modalType === 'stunting' ? '#fef2f2' : '#f0fdf4' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: modalType === 'stunting' ? '#b91c1c' : '#15803d', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: modalType === 'stunting' ? '#fef2f2' : '#f0fdf4' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: modalType === 'stunting' ? '#b91c1c' : '#15803d', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {modalType === 'stunting' ? <IconWarning /> : <IconCheck />}
                 Anak {modalType === 'stunting' ? 'Terindikasi Stunting' : 'Gizi Baik/Normal'}
               </h3>
               <button onClick={() => setModalType(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><IconClose /></button>
             </div>
 
-            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+            <div style={{ padding: '16px', overflowY: 'auto', flex: 1 }}>
               {modalLoading ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>Memuat data...</div>
               ) : modalData.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>Tidak ada data pada kategori ini.</div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}>
-                      <th style={{ padding: '12px 8px', color: '#475569' }}>NIK</th>
-                      <th style={{ padding: '12px 8px', color: '#475569' }}>Nama Anak</th>
-                      <th style={{ padding: '12px 8px', color: '#475569' }}>Jenis Kelamin</th>
-                      <th style={{ padding: '12px 8px', color: '#475569' }}>Status</th>
-                      <th style={{ padding: '12px 8px' }}></th>
+                      <th style={{ padding: '8px', color: '#475569' }}>NIK</th>
+                      <th style={{ padding: '8px', color: '#475569' }}>Nama Anak</th>
+                      <th style={{ padding: '8px', color: '#475569' }}>Jenis Kelamin</th>
+                      <th style={{ padding: '8px', color: '#475569' }}>Status</th>
+                      <th style={{ padding: '8px' }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {modalData.map(c => (
                       <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: 500 }}>{c.nik}</td>
-                        <td style={{ padding: '12px 8px', fontWeight: 600, color: '#0f172a' }}>{c.nama_anak}</td>
-                        <td style={{ padding: '12px 8px' }}>{c.jenis_kelamin}</td>
-                        <td style={{ padding: '12px 8px' }}>
-                          <span style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', background: modalType === 'stunting' ? '#fee2e2' : '#dcfce7', color: modalType === 'stunting' ? '#b91c1c' : '#15803d', fontWeight: 600 }}>
+                        <td style={{ padding: '10px 8px', fontWeight: 500 }}>{c.nik}</td>
+                        <td style={{ padding: '10px 8px', fontWeight: 600, color: '#0f172a' }}>{c.nama_anak}</td>
+                        <td style={{ padding: '10px 8px' }}>{c.jenis_kelamin}</td>
+                        <td style={{ padding: '10px 8px' }}>
+                          <span style={{ fontSize: '0.7rem', padding: '4px 8px', borderRadius: '4px', background: modalType === 'stunting' ? '#fee2e2' : '#dcfce7', color: modalType === 'stunting' ? '#b91c1c' : '#15803d', fontWeight: 600 }}>
                             {c.status_keseluruhan}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                        <td style={{ padding: '10px 8px', textAlign: 'right' }}>
                           <button 
                             onClick={() => router.push(`/data-pengukuran?nik=${c.nik}`)}
-                            style={{ background: '#eff6ff', color: '#2563eb', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                            style={{ background: '#eff6ff', color: '#2563eb', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                           >
                             Lihat
                           </button>
