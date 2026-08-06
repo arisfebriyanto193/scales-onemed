@@ -16,20 +16,19 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export default function CekDataAnak() {
   const router = useRouter();
   const [nik, setNik] = useState('');
-  const [tanggalLahir, setTanggalLahir] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState<{ child: any, measurements: any[] } | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nik || !tanggalLahir) return;
+    if (!nik) return;
     setLoading(true);
     setError('');
     setData(null);
     try {
-      // Step 1: Verify NIK and Date of Birth
-      const verifyRes = await api.post(`/children/public/verify`, { nik, tanggal_lahir: tanggalLahir });
+      // Step 1: Verify NIK
+      const verifyRes = await api.post(`/children/public/verify`, { nik });
       const token = verifyRes.data.token;
 
       // Step 2: Fetch data using JWT token
@@ -38,7 +37,7 @@ export default function CekDataAnak() {
       });
       setData(res.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal mencari data anak. Pastikan NIK dan Tanggal Lahir benar.');
+      setError(err.response?.data?.message || 'Gagal mencari data anak. Pastikan NIK benar.');
     } finally {
       setLoading(false);
     }
@@ -177,7 +176,7 @@ export default function CekDataAnak() {
             Pantau Pertumbuhan <span style={{ background: 'linear-gradient(to right, #2563eb, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Anak Anda</span>
           </h2>
           <p style={{ fontSize: '1.05rem', color: 'var(--text-muted)', marginBottom: '32px', maxWidth: '700px', lineHeight: 1.6 }}>
-            Masukkan NIK dan Tanggal Lahir anak untuk melihat riwayat pertumbuhan dan grafik pengukuran secara aman.
+            Masukkan NIK anak untuk melihat riwayat pertumbuhan dan grafik pengukuran secara mudah dan cepat.
           </p>
 
           <form onSubmit={handleSearch} style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
@@ -203,26 +202,7 @@ export default function CekDataAnak() {
                 />
               </div>
 
-              <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '16px', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex', pointerEvents: 'none' }}>
-                  <Calendar size={22} />
-                </div>
-                <input
-                  type="date"
-                  value={tanggalLahir}
-                  onChange={e => setTanggalLahir(e.target.value)}
-                  style={{
-                    width: '100%', padding: '18px 20px 18px 50px', background: 'rgba(255, 255, 255, 0.6)',
-                    border: '2px solid var(--border)', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 500,
-                    outline: 'none', transition: 'all 0.2s', color: 'var(--text-main)'
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.background = '#fff'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.background = 'rgba(255, 255, 255, 0.6)'; }}
-                  required
-                />
-              </div>
-
-              <button type="submit" disabled={loading || nik.length < 16 || !tanggalLahir} className="btn-primary" style={{
+              <button type="submit" disabled={loading || !nik} className="btn-primary" style={{
                 padding: '0 32px', height: '64px', borderRadius: '16px', fontSize: '1.1rem', background: '#0f172a',
                 boxShadow: '0 10px 25px -5px rgba(15,23,42,0.3)', transition: 'all 0.2s', border: 'none', cursor: 'pointer'
               }}>

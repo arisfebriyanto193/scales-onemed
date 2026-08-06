@@ -101,30 +101,30 @@ export default function CekStatusGiziPage() {
   const kurangCount   = data.filter(d => d.status_keseluruhan === 'Kurang Gizi').length;
 
   return (
-    <div className="page-content" style={{ padding: '24px' }}>
-      <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: '#1e293b' }}>Cek Status Gizi</h1>
+    <div className="page-content" style={{ padding: '16px 24px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <h1 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '12px', color: '#1e293b', flexShrink: 0 }}>Cek Status Gizi</h1>
 
       {/* Summary Cards */}
-      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginBottom: '12px', flexShrink: 0 }}>
         {[
           { label: 'Total Data', value: data.length, icon: <IconClipboard />, bg: '#ffffff', ib: '#eff6ff', ic: '#2563eb' },
           { label: 'Gizi Normal', value: normalCount, icon: <IconCheck />, bg: '#ffffff', ib: '#f0fdf4', ic: '#16a34a' },
           { label: 'Kurang Gizi', value: kurangCount, icon: <IconWarning />, bg: '#ffffff', ib: '#fff7ed', ic: '#d97706' },
           { label: 'Stunting', value: stuntingCount, icon: <IconAlertCircle />, bg: '#ffffff', ib: '#fef2f2', ic: '#dc2626' },
         ].map(c => (
-          <div key={c.label} className="stat-card" style={{ background: c.bg, padding: '16px', border: '1px solid #e8edf2' }}>
-            <div className="stat-icon" style={{ background: c.ib, color: c.ic, width: '40px', height: '40px', fontSize: '1.1rem' }}>{c.icon}</div>
+          <div key={c.label} className="stat-card" style={{ background: c.bg, padding: '10px 14px', border: '1px solid #e8edf2' }}>
+            <div className="stat-icon" style={{ background: c.ib, color: c.ic, width: '36px', height: '36px', fontSize: '1rem' }}>{c.icon}</div>
             <div>
-              <p style={{ fontSize: '0.72rem', color: '#64748b' }}>{c.label}</p>
-              <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>{loading ? '...' : c.value}</p>
+              <p style={{ fontSize: '0.7rem', color: '#64748b' }}>{c.label}</p>
+              <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : c.value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="card">
+      <div className="card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 20px' }}>
         {/* Filter bar */}
-        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center', flexShrink: 0 }}>
           <select className="input-penting" style={{ maxWidth: '200px' }}
             value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
             <option value="">Semua Status</option>
@@ -150,7 +150,7 @@ export default function CekStatusGiziPage() {
         </div>
 
         {/* Table */}
-        <div className="table-scroll" style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>
@@ -210,7 +210,7 @@ export default function CekStatusGiziPage() {
         </div>
 
         {/* Legend */}
-        <div style={{ marginTop: '16px', padding: '12px 16px', background: '#f8fafc', borderRadius: '8px', fontSize: '0.78rem', color: '#64748b' }}>
+        <div style={{ marginTop: '10px', padding: '8px 12px', background: '#f8fafc', borderRadius: '8px', fontSize: '0.75rem', color: '#64748b', flexShrink: 0 }}>
           <strong>Keterangan klasifikasi WHO:</strong>&nbsp;
           <span className="badge badge-normal" style={{ marginRight: 6 }}>Normal</span>
           <span className="badge badge-kurang" style={{ marginRight: 6 }}>Kurang Gizi / Pendek</span>

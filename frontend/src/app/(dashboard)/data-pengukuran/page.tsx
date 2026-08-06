@@ -209,7 +209,7 @@ export default function DataPengukuranPage() {
 
   // ─────────────────────────────────────────────────────────────
   return (
-    <div className="page-content" style={{ padding: '24px' }}>
+    <div className="page-content" style={{ padding: '16px 24px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .mode-btn {
@@ -246,14 +246,14 @@ export default function DataPengukuranPage() {
         }
       `}</style>
 
-      <div style={{ marginBottom: '22px' }}>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>Data Pengukuran</h1>
-        <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '2px' }}>Riwayat pengukuran berat dan tinggi badan anak</p>
+      <div style={{ marginBottom: '12px', flexShrink: 0 }}>
+        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>Data Pengukuran</h1>
+        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '1px' }}>Riwayat pengukuran berat dan tinggi badan anak</p>
       </div>
 
-      <div className="card">
+      <div className="card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 20px' }}>
         {/* Toolbar */}
-        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center', flexShrink: 0 }}>
           <div style={{ position: 'relative', maxWidth: '280px', flex: '1 1 200px' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -270,7 +270,7 @@ export default function DataPengukuranPage() {
         </div>
 
         {/* Table */}
-        <div className="table-scroll" style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>

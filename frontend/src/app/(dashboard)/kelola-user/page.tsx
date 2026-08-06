@@ -105,22 +105,22 @@ export default function KelolaUserPage() {
 
 
   return (
-    <div className="page-content" style={{ padding: '24px' }}>
-      <div style={{ marginBottom: '22px' }}>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>Kelola User</h1>
-        <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '2px' }}>Manajemen akun akses petugas posyandu dan admin</p>
+    <div className="page-content" style={{ padding: '16px 24px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ marginBottom: '12px', flexShrink: 0 }}>
+        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>Kelola User</h1>
+        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '1px' }}>Manajemen akun akses petugas posyandu dan admin</p>
       </div>
 
-      <div className="card">
+      <div className="card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 20px' }}>
         {/* Toolbar */}
-        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '18px', flexWrap: 'wrap' }}>
+        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap', flexShrink: 0 }}>
           <button className="btn-primary" onClick={openAdd} style={{ marginLeft: 'auto' }}>
             <IconPlus /> Tambah User
           </button>
         </div>
 
         {/* Table */}
-        <div className="table-scroll" style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>

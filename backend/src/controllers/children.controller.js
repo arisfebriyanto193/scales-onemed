@@ -10,23 +10,25 @@ const jwt = require('jsonwebtoken');
 const verifyParentAccess = async (req, res) => {
   try {
     const { nik, tanggal_lahir } = req.body;
-    if (!nik || !tanggal_lahir) {
-      return res.status(400).json({ success: false, message: 'NIK dan Tanggal Lahir wajib diisi.' });
+    if (!nik) {
+      return res.status(400).json({ success: false, message: 'NIK wajib diisi.' });
     }
 
     const [childrenRows] = await db.query('SELECT * FROM children WHERE nik = ? LIMIT 1', [nik]);
     if (childrenRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Data anak tidak ditemukan.' });
+      return res.status(404).json({ success: false, message: 'Data anak dengan NIK tersebut tidak ditemukan.' });
     }
 
     const child = childrenRows[0];
     
-    // Check Date of Birth
-    const dbDate = new Date(child.tanggal_lahir).toISOString().split('T')[0];
-    const inputDate = new Date(tanggal_lahir).toISOString().split('T')[0];
+    // Check Date of Birth only if provided
+    if (tanggal_lahir) {
+      const dbDate = new Date(child.tanggal_lahir).toISOString().split('T')[0];
+      const inputDate = new Date(tanggal_lahir).toISOString().split('T')[0];
 
-    if (dbDate !== inputDate) {
-      return res.status(401).json({ success: false, message: 'Tanggal Lahir salah.' });
+      if (dbDate !== inputDate) {
+        return res.status(401).json({ success: false, message: 'Tanggal Lahir salah.' });
+      }
     }
 
     // Generate JWT token for parent access (valid for 1 hour)

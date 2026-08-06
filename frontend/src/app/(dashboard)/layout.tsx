@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const initials = (user?.nama_lengkap || user?.username || 'P')[0].toUpperCase();
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)}></div>
       <div className={`sidebar-container ${sidebarOpen ? 'open' : ''}`}>
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
@@ -53,6 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           top: 0,
           zIndex: 50,
           boxShadow: '0 1px 3px rgba(15,23,42,0.05)',
+          flexShrink: 0,
         }}>
           {/* Left side: Hamburger + Breadcrumb */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -113,7 +114,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page Content */}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {children}
         </div>
       </main>

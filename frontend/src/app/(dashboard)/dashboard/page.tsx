@@ -143,7 +143,7 @@ export default function DashboardPage() {
   };
   
   return (
-    <div className="page-content" style={{ height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div className="page-content" style={{ height: '100%', padding: '16px 24px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexShrink: 0 }}>

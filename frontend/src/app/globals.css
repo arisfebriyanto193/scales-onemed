@@ -46,7 +46,10 @@
 /* ─── Reset & Base ──────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
 
 body {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
@@ -311,9 +314,11 @@ textarea.input-penting { line-height: 1.5; }
   margin-left: 240px;
   flex: 1;
   background: #f8fafb;
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* Header — desktop padding */

@@ -219,7 +219,7 @@ function DataAnakInner() {
   };
 
   return (
-    <div className="page-content" style={{ padding: '24px' }}>
+    <div className="page-content" style={{ padding: '16px 24px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <style>{`
         @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
         .rfid-chip {
@@ -230,21 +230,22 @@ function DataAnakInner() {
         }
       `}</style>
 
-      <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '20px', color: '#1e293b' }}>Data Anak</h1>
+      <h1 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '12px', color: '#1e293b', flexShrink: 0 }}>Data Anak</h1>
 
       {/* ── Banner RFID redirect ──────────────────────────────── */}
       {rfidBanner && !modal && (
         <div style={{
           background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '10px',
-          padding: '12px 16px', marginBottom: '16px', display: 'flex',
+          padding: '10px 14px', marginBottom: '12px', display: 'flex',
           alignItems: 'center', justifyContent: 'space-between',
+          flexShrink: 0,
           animation: 'slideIn 0.3s ease'
         }}>
           <div style={{ color: '#92400e' }}>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '3px' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '2px' }}>
               🎫 Daftarkan Anak dengan Kartu RFID
             </div>
-            <div style={{ fontSize: '0.82rem' }}>
+            <div style={{ fontSize: '0.8rem' }}>
               UID: <code style={{ background: '#fde68a', padding: '1px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>
                 {rfidBanner}
               </code>{' '}
@@ -256,9 +257,9 @@ function DataAnakInner() {
         </div>
       )}
 
-      <div className="card">
+      <div className="card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '16px 20px' }}>
         {/* Toolbar */}
-        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <div className="toolbar-mobile" style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap', flexShrink: 0 }}>
           <input className="input-penting" placeholder="Cari nama / NIK..." style={{ maxWidth: '260px' }}
             value={search} onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchData(search)} />
@@ -267,7 +268,7 @@ function DataAnakInner() {
         </div>
 
         {/* Table */}
-        <div className="table-scroll" style={{ overflowX: 'auto' }}>
+        <div className="table-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
           <table className="table-penting">
             <thead>
               <tr>
