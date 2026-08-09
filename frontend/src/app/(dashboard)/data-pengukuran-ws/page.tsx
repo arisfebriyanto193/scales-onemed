@@ -2,6 +2,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 // ─── Tipe Data ────────────────────────────────────────────────
 interface Measurement {
@@ -15,6 +21,16 @@ interface Child { id: number; nama_anak: string; }
 const EMPTY = { child_id: '', tanggal_kunjungan: '', berat_badan: '', tinggi_badan: '', catatan: '', status_kesehatan_tipe: '', status_kesehatan_lainnya: '' };
 
 // ─── Field Wrapper ────────────────────────────────────────────
+const formatDate = (dateStr?: string) => {
+  if (!dateStr) return '-';
+  const parts = dateStr.substring(0, 10).split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  }
+  return dateStr;
+};
+
 const Field = ({ label, children: fc }: { label: string; children: React.ReactNode }) => (
   <div style={{ marginBottom: '14px' }}>
     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '5px', color: '#374151' }}>
@@ -205,6 +221,31 @@ export default function DataPengukuranPage() {
   const [editId, setEditId]     = useState<number | null>(null);
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
+  const [detailModal, setDetailModal] = useState(false);
+  const [detailData, setDetailData] = useState<{ child: any, measurements: any[] } | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
+
+  const openDetail = async (childId: number) => {
+    setDetailModal(true);
+    setDetailLoading(true);
+    setDetailError('');
+    setDetailData(null);
+    try {
+      const [childRes, measRes] = await Promise.all([
+        api.get(`/children/${childId}`),
+        api.get(`/measurements/child/${childId}`)
+      ]);
+      setDetailData({
+        child: childRes.data.data,
+        measurements: measRes.data.data || []
+      });
+    } catch (err: any) {
+      setDetailError(err.response?.data?.message || 'Gagal mengambil data detail anak.');
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   // ── Mode Auto/Manual ─────────────────────────────────────────
   const [inputMode, setInputMode] = useState<'manual' | 'auto'>('manual');
@@ -467,24 +508,39 @@ export default function DataPengukuranPage() {
         </div>
 
         <div className="table-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
-          <table className="table-penting">
+          <table className="table-penting" style={{ width: '100%' }}>
             <thead>
               <tr>
-                <th>ID</th><th>Nama Anak</th><th>Tgl Lahir</th><th>Usia</th>
-                <th>Jenis Kelamin</th><th>Berat Badan</th><th>Tinggi Badan</th>
-                <th>Tgl Kunjungan</th><th>Status Kesehatan</th><th>Aksi</th>
+                <th style={{ width: '50px', textAlign: 'center' }}>No</th>
+                <th>Nama Anak</th>
+                <th>Usia</th>
+                <th>Jenis Kelamin</th>
+                <th>Berat Badan</th>
+                <th>Tinggi Badan</th>
+                <th>Tgl Kunjungan</th>
+                <th>Status Kesehatan</th>
+                <th style={{ textAlign: 'center', width: '120px' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Memuat data...</td></tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Belum ada data pengukuran.</td></tr>
-              ) : data.map((m) => (
+                <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Belum ada data pengukuran.</td></tr>
+              ) : data.map((m, i) => (
                 <tr key={m.id}>
-                  <td style={{ fontWeight: 600, color: '#64748b' }}>{m.id}</td>
-                  <td style={{ fontWeight: 600 }}>{m.nama_anak}</td>
-                  <td>{m.tanggal_lahir?.substring(0, 10)}</td>
+                  <td style={{ textAlign: 'center' }}>{i + 1}</td>
+                  <td>
+                    <div 
+                      className="name-detail-link"
+                      style={{ fontWeight: 600, cursor: 'pointer', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => openDetail(m.child_id)}
+                      title="Klik untuk lihat detail lengkap"
+                    >
+                      <span>{m.nama_anak}</span>
+                      
+                    </div>
+                  </td>
                   <td><span className="badge badge-normal">{m.usia_teks}</span></td>
                   <td>
                     <span className={`badge ${m.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`}>
@@ -493,15 +549,13 @@ export default function DataPengukuranPage() {
                   </td>
                   <td style={{ fontWeight: 600 }}>{m.berat_badan} kg</td>
                   <td style={{ fontWeight: 600 }}>{m.tinggi_badan} cm</td>
-                  <td>{m.tanggal_kunjungan?.substring(0, 10)}</td>
+                  <td>{formatDate(m.tanggal_kunjungan)}</td>
                   <td>{m.status_kesehatan || '-'}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }}
+                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                      <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
                         onClick={() => openEdit(m)}>Edit</button>
-                      <button className="btn-danger" style={{ padding: '5px 10px' }} onClick={() => handleDelete(m.id)}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                      </button>
+                      <button className="btn-danger" style={{ padding: '5px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }} onClick={() => handleDelete(m.id)}>Hapus</button>
                     </div>
                   </td>
                 </tr>
@@ -511,7 +565,7 @@ export default function DataPengukuranPage() {
         </div>
       </div>
 
-      {/* ─── Modal ─────────────────────────────────────────────── */}
+      {/* ─── Modal Add / Edit ──────────────────────────────────── */}
       {modal && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
@@ -634,6 +688,170 @@ export default function DataPengukuranPage() {
                 {saving ? 'Menyimpan...' : 'Simpan Pengukuran'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal Detail Anak ─────────────────────────────────── */}
+      {detailModal && (
+        <div className="modal-overlay" onClick={() => setDetailModal(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ width: '95%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>Detail & Riwayat Anak</h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>Informasi lengkap dan riwayat pertumbuhan anak</p>
+              </div>
+              <button onClick={() => setDetailModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
+
+            {detailLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Memuat data anak...</div>
+            ) : detailError ? (
+              <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px' }}>{detailError}</div>
+            ) : detailData ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {/* Profil Anak Lengkap */}
+                <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>NAMA ANAK</p>
+                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 600, margin: 0 }}>{detailData.child.nama_anak}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>NIK</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, fontFamily: 'monospace', margin: 0 }}>{detailData.child.nik}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>JENIS KELAMIN</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        <span className={`badge ${detailData.child.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
+                          {detailData.child.jenis_kelamin === 'Laki-laki' ? '♂' : '♀'} {detailData.child.jenis_kelamin}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>TANGGAL LAHIR</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {detailData.child.tanggal_lahir ? new Date(detailData.child.tanggal_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>ORANG TUA / WALI</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.nama_orang_tua || '-'}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>WILAYAH</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.wilayah || '-'}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>NO. TELEPON</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.nomor_telepon || '-'}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>RFID UID</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {detailData.child.rfid_uid ? (
+                          <span style={{ background: '#ede9fe', color: '#6d28d9', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', fontFamily: 'monospace', fontWeight: 600 }}>🃏 {detailData.child.rfid_uid}</span>
+                        ) : '—'}
+                      </p>
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>ALAMAT</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.alamat || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grafik Pertumbuhan */}
+                {detailData.measurements.length > 0 && (
+                  <div style={{ border: '1px solid #e2e8f0', padding: '20px', borderRadius: '12px' }}>
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>Grafik Pertumbuhan</h4>
+                    <div style={{ height: '300px', position: 'relative' }}>
+                      <Line 
+                        data={{
+                          labels: detailData.measurements.map(m => {
+                            const date = new Date(m.tanggal_kunjungan);
+                            return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                          }),
+                          datasets: [
+                            {
+                              label: 'Berat Badan (kg)',
+                              data: detailData.measurements.map(m => m.berat_badan),
+                              borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.5)', yAxisID: 'y', tension: 0.3,
+                            },
+                            {
+                              label: 'Tinggi Badan (cm)',
+                              data: detailData.measurements.map(m => m.tinggi_badan),
+                              borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.5)', yAxisID: 'y1', tension: 0.3,
+                            }
+                          ]
+                        }}
+                        options={{
+                          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index' as const, intersect: false },
+                          scales: {
+                            y: { type: 'linear' as const, display: true, position: 'left' as const, title: { display: true, text: 'Berat (kg)' } },
+                            y1: { type: 'linear' as const, display: true, position: 'right' as const, grid: { drawOnChartArea: false }, title: { display: true, text: 'Tinggi (cm)' } },
+                          }
+                        }} 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Riwayat Pengukuran */}
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '20px 20px 16px 20px', color: '#1e293b' }}>Riwayat Pengukuran</h4>
+                  {detailData.measurements.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>Belum ada riwayat pengukuran.</div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Tanggal</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Usia</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>BB (kg)</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>TB (cm)</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status Kes.</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status BB/U</th>
+                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: 600 }}>Status TB/U</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {detailData.measurements.map((m, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '12px 20px' }}>{formatDate(m.tanggal_kunjungan)}</td>
+                              <td style={{ padding: '12px 20px' }}>{m.usia_bulan} bln</td>
+                              <td style={{ padding: '12px 20px', fontWeight: 500, color: '#3b82f6' }}>{m.berat_badan}</td>
+                              <td style={{ padding: '12px 20px', fontWeight: 500, color: '#10b981' }}>{m.tinggi_badan}</td>
+                              <td style={{ padding: '12px 20px', fontSize: '0.8rem', color: '#64748b' }}>{m.status_kesehatan || '-'}</td>
+                              <td style={{ padding: '12px 20px' }}>
+                                <span style={{
+                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
+                                  background: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#fee2e2' : '#dcfce7',
+                                  color: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#b91c1c' : '#15803d'
+                                }}>
+                                  {m.status_bb_u || '-'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 20px' }}>
+                                <span style={{
+                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
+                                  background: m.status_tb_u?.includes('Pendek') ? '#fee2e2' : '#dcfce7',
+                                  color: m.status_tb_u?.includes('Pendek') ? '#b91c1c' : '#15803d'
+                                }}>
+                                  {m.status_tb_u || '-'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

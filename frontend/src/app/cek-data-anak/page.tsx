@@ -263,14 +263,6 @@ export default function CekDataAnak() {
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', marginBottom: '6px' }}>
-                    <Calendar size={16} /> <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.5px' }}>TANGGAL LAHIR</span>
-                  </div>
-                  <p style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>
-                    {formatDate(data.child.tanggal_lahir)}
-                  </p>
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', marginBottom: '6px' }}>
                     <Activity size={16} /> <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.5px' }}>JENIS KELAMIN</span>
                   </div>
                   <div style={{ marginTop: '4px' }}>

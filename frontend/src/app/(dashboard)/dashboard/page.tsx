@@ -175,7 +175,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Total Pengukuran */}
-        <div onClick={() => router.push('/data-pengukuran')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+        <div onClick={() => router.push('/data-pengukuran-ws')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
           <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#f5f3ff' /* Tailwind violet-50 */, color: '#7c3aed' /* Tailwind violet-600 */ }}><IconRuler /></div>
           <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Total Pengukuran</p>
           <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_pengukuran ?? '-'}</p>

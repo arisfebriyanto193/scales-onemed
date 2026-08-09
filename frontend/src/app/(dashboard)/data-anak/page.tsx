@@ -207,12 +207,13 @@ function DataAnakInner() {
     setDetailModal(true);
     setDetailLoading(true);
     setDetailError('');
-    setDetailData(null);
+    setDetailData({ child: c, measurements: [] });
     try {
-      const res = await api.get(`/children/public/by-nik/${c.nik}`);
-      setDetailData(res.data.data);
+      const res = await api.get(`/measurements/child/${c.id}`);
+      setDetailData({ child: c, measurements: res.data.data || [] });
     } catch (err: any) {
-      setDetailError(err.response?.data?.message || 'Gagal mengambil data riwayat anak.');
+      // Tetap tampilkan profil anak meskipun gagal memuat riwayat pengukuran
+      setDetailData({ child: c, measurements: [] });
     } finally {
       setDetailLoading(false);
     }
@@ -227,6 +228,10 @@ function DataAnakInner() {
           background: #ede9fe; color: #6d28d9; border-radius: 6px;
           padding: 2px 8px; font-size: 0.72rem; font-family: monospace;
           font-weight: 600; letter-spacing: 0.05em;
+        }
+        .name-detail-link:hover {
+          color: #1d4ed8 !important;
+          text-decoration: underline !important;
         }
       `}</style>
 
@@ -267,50 +272,49 @@ function DataAnakInner() {
           <button className="btn-primary" onClick={openAdd} style={{ marginLeft: 'auto' }}>+ Tambah Data</button>
         </div>
 
-        {/* Table */}
+        {/* Table Ringkas */}
         <div className="table-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
-          <table className="table-penting">
+          <table className="table-penting" style={{ width: '100%' }}>
             <thead>
               <tr>
-                <th>No</th><th>NIK</th><th>Nama Anak</th><th>Jenis Kelamin</th>
-                <th>Tgl Lahir</th><th>Nama Orang Tua</th><th>Wilayah</th>
-                <th>No. Telp</th><th>RFID</th><th>Aksi</th>
+                <th style={{ width: '50px', textAlign: 'center' }}>No</th>
+                <th>Nama Anak</th>
+                <th>NIK</th>
+                <th>Jenis Kelamin</th>
+                <th>Nama Orang Tua</th>
+                <th style={{ textAlign: 'center', width: '140px' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Memuat data...</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Memuat data...</td></tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Tidak ada data anak.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Tidak ada data anak.</td></tr>
               ) : data.map((c, i) => (
                 <tr key={c.id}>
-                  <td>{i + 1}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{c.nik}</td>
-                  <td 
-                    style={{ fontWeight: 600, cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }}
-                    onClick={() => openDetail(c)}
-                  >
-                    {c.nama_anak}
-                  </td>
+                  <td style={{ textAlign: 'center' }}>{i + 1}</td>
                   <td>
-                    <span className={`badge ${c.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`}>
+                    <div 
+                      className="name-detail-link"
+                      style={{ fontWeight: 600, cursor: 'pointer', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => openDetail(c)}
+                      title="Klik untuk lihat detail lengkap"
+                    >
+                      <span>{c.nama_anak}</span>
+                    
+                    </div>
+                  </td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{c.nik}</td>
+                  <td>
+                    <span className={`badge ${c.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
                       {c.jenis_kelamin === 'Laki-laki' ? '♂' : '♀'} {c.jenis_kelamin}
                     </span>
                   </td>
-                  <td>{c.tanggal_lahir?.substring(0, 10)}</td>
                   <td>{c.nama_orang_tua}</td>
-                  <td>{c.wilayah || '-'}</td>
-                  <td>{c.nomor_telepon || '-'}</td>
                   <td>
-                    {c.rfid_uid
-                      ? <span className="rfid-chip">🃏 {c.rfid_uid}</span>
-                      : <span style={{ color: '#cbd5e1', fontSize: '0.78rem' }}>—</span>
-                    }
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem' }} onClick={() => openEdit(c)}>Edit</button>
-                      <button className="btn-danger" onClick={() => handleDelete(c.id, c.nama_anak)}>🗑️</button>
+                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                      <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem', whiteSpace: 'nowrap' }} onClick={() => openEdit(c)}> Edit</button>
+                      <button className="btn-danger" style={{ padding: '5px 10px', fontSize: '0.78rem', whiteSpace: 'nowrap' }} onClick={() => handleDelete(c.id, c.nama_anak)}>Hapus</button>
                     </div>
                   </td>
                 </tr>
@@ -325,7 +329,7 @@ function DataAnakInner() {
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>
-              {modal === 'add' ? '+ Tambah Data Anak' : '✏️ Edit Data Anak'}
+              {modal === 'add' ? '+ Tambah Data Anak' : ' Edit Data Anak'}
             </h3>
 
             {/* Banner RFID di dalam modal */}
@@ -459,8 +463,26 @@ function DataAnakInner() {
         <div className="modal-overlay" onClick={() => setDetailModal(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ width: '95%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>Detail Riwayat Pengukuran</h3>
-              <button onClick={() => setDetailModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b' }}>✕</button>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>Detail & Riwayat Anak</h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>Informasi lengkap dan riwayat pertumbuhan anak</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {detailData?.child && (
+                  <button 
+                    className="btn-secondary" 
+                    style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    onClick={() => {
+                      const childToEdit = detailData.child;
+                      setDetailModal(false);
+                      openEdit(childToEdit);
+                    }}
+                  >
+                     Edit Data Anak
+                  </button>
+                )}
+                <button onClick={() => setDetailModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#64748b' }}>✕</button>
+              </div>
             </div>
 
             {detailLoading ? (
@@ -469,26 +491,54 @@ function DataAnakInner() {
               <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px' }}>{detailError}</div>
             ) : detailData ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Profil Anak */}
+                {/* Profil Anak Lengkap */}
                 <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
                     <div>
-                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>NAMA ANAK</p>
-                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 600 }}>{detailData.child.nama_anak}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>NAMA ANAK</p>
+                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 600, margin: 0 }}>{detailData.child.nama_anak}</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>NIK</p>
-                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 500 }}>{detailData.child.nik}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>NIK</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, fontFamily: 'monospace', margin: 0 }}>{detailData.child.nik}</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>TANGGAL LAHIR</p>
-                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 500 }}>
-                        {new Date(detailData.child.tanggal_lahir).toLocaleDateString('id-ID')}
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>JENIS KELAMIN</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        <span className={`badge ${detailData.child.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
+                          {detailData.child.jenis_kelamin === 'Laki-laki' ? '♂' : '♀'} {detailData.child.jenis_kelamin}
+                        </span>
                       </p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>JENIS KELAMIN</p>
-                      <p style={{ fontSize: '1rem', color: '#0f172a', fontWeight: 500 }}>{detailData.child.jenis_kelamin}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>TANGGAL LAHIR</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {detailData.child.tanggal_lahir ? new Date(detailData.child.tanggal_lahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>ORANG TUA / WALI</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.nama_orang_tua || '-'}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>WILAYAH</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.wilayah || '-'}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>NO. TELEPON</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.nomor_telepon || '-'}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>RFID UID</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {detailData.child.rfid_uid ? (
+                          <span className="rfid-chip" style={{ padding: '2px 6px', fontSize: '0.72rem' }}>🃏 {detailData.child.rfid_uid}</span>
+                        ) : '—'}
+                      </p>
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>ALAMAT</p>
+                      <p style={{ fontSize: '0.95rem', color: '#0f172a', fontWeight: 500, margin: 0 }}>{detailData.child.alamat || '-'}</p>
                     </div>
                   </div>
                 </div>

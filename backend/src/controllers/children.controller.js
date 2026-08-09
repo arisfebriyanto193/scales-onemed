@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 // POST /api/children/public/verify
 const verifyParentAccess = async (req, res) => {
   try {
-    const { nik, tanggal_lahir } = req.body;
+    const { nik } = req.body;
     if (!nik) {
       return res.status(400).json({ success: false, message: 'NIK wajib diisi.' });
     }
@@ -20,16 +20,6 @@ const verifyParentAccess = async (req, res) => {
     }
 
     const child = childrenRows[0];
-    
-    // Check Date of Birth only if provided
-    if (tanggal_lahir) {
-      const dbDate = new Date(child.tanggal_lahir).toISOString().split('T')[0];
-      const inputDate = new Date(tanggal_lahir).toISOString().split('T')[0];
-
-      if (dbDate !== inputDate) {
-        return res.status(401).json({ success: false, message: 'Tanggal Lahir salah.' });
-      }
-    }
 
     // Generate JWT token for parent access (valid for 1 hour)
     const token = jwt.sign(
