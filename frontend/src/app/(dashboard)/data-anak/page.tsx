@@ -274,47 +274,50 @@ function DataAnakInner() {
 
         {/* Table Ringkas */}
         <div className="table-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'auto' }}>
-          <table className="table-penting" style={{ width: '100%' }}>
+          <table className="table-penting" style={{ width: '100%', fontSize: '0.75rem' }}>
             <thead>
               <tr>
-                <th style={{ width: '50px', textAlign: 'center' }}>No</th>
-                <th>Nama Anak</th>
-                <th>NIK</th>
-                <th>Jenis Kelamin</th>
-                <th>Nama Orang Tua</th>
-                <th style={{ textAlign: 'center', width: '140px' }}>Aksi</th>
+                <th style={{ width: '40px', textAlign: 'center', padding: '6px' }}>No</th>
+                <th style={{ padding: '6px' }}>Nama Anak</th>
+                <th style={{ padding: '6px' }}>NIK</th>
+                <th style={{ padding: '6px' }}>Tgl Lahir</th>
+                <th style={{ textAlign: 'center', padding: '6px' }}>L/P</th>
+                <th style={{ padding: '6px' }}>Orang Tua</th>
+                <th style={{ textAlign: 'center', width: '120px', padding: '6px' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Memuat data...</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Memuat data...</td></tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Tidak ada data anak.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Tidak ada data anak.</td></tr>
               ) : data.map((c, i) => (
                 <tr key={c.id}>
-                  <td style={{ textAlign: 'center' }}>{i + 1}</td>
-                  <td>
+                  <td style={{ textAlign: 'center', padding: '6px' }}>{i + 1}</td>
+                  <td style={{ padding: '6px' }}>
                     <div 
                       className="name-detail-link"
-                      style={{ fontWeight: 600, cursor: 'pointer', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      style={{ fontWeight: 600, cursor: 'pointer', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       onClick={() => openDetail(c)}
                       title="Klik untuk lihat detail lengkap"
                     >
                       <span>{c.nama_anak}</span>
-                    
                     </div>
                   </td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{c.nik}</td>
-                  <td>
-                    <span className={`badge ${c.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
-                      {c.jenis_kelamin === 'Laki-laki' ? '♂' : '♀'} {c.jenis_kelamin}
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', padding: '6px' }}>{c.nik}</td>
+                  <td style={{ whiteSpace: 'nowrap', padding: '6px' }}>
+                    {c.tanggal_lahir ? new Date(c.tanggal_lahir).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '6px' }}>
+                    <span className={`badge ${c.jenis_kelamin === 'Laki-laki' ? 'badge-normal' : 'badge-lebih'}`} style={{ padding: '2px 6px', fontSize: '0.7rem' }}>
+                      {c.jenis_kelamin === 'Laki-laki' ? 'L' : 'P'}
                     </span>
                   </td>
-                  <td>{c.nama_orang_tua}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                      <button className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.78rem', whiteSpace: 'nowrap' }} onClick={() => openEdit(c)}> Edit</button>
-                      <button className="btn-danger" style={{ padding: '5px 10px', fontSize: '0.78rem', whiteSpace: 'nowrap' }} onClick={() => handleDelete(c.id, c.nama_anak)}>Hapus</button>
+                  <td style={{ padding: '6px' }}>{c.nama_orang_tua}</td>
+                  <td style={{ padding: '6px' }}>
+                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                      <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.7rem', whiteSpace: 'nowrap' }} onClick={() => openEdit(c)}>Edit</button>
+                      <button className="btn-danger" style={{ padding: '4px 8px', fontSize: '0.7rem', whiteSpace: 'nowrap' }} onClick={() => handleDelete(c.id, c.nama_anak)}>Hapus</button>
                     </div>
                   </td>
                 </tr>
