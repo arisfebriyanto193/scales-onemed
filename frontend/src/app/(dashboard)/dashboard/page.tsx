@@ -83,6 +83,12 @@ export default function DashboardPage() {
   const [modalData, setModalData] = useState<ChildDetail[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
 
+  // State for Grafik Per Anak
+  const [childrenList, setChildrenList] = useState<any[]>([]);
+  const [selectedChildId, setSelectedChildId] = useState<string>('');
+  const [childData, setChildData] = useState<{ child: any, measurements: any[] } | null>(null);
+  const [childLoading, setChildLoading] = useState(false);
+
   const fetchDashboardData = (selectedGender: string) => {
     setLoading(true);
     Promise.all([
@@ -100,6 +106,27 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchDashboardData(gender);
   }, [gender]);
+
+  useEffect(() => {
+    api.get('/children').then(res => setChildrenList(res.data.data || [])).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedChildId) {
+      setChildData(null);
+      return;
+    }
+    setChildLoading(true);
+    Promise.all([
+      api.get(`/children/${selectedChildId}`),
+      api.get(`/measurements/child/${selectedChildId}`)
+    ]).then(([childRes, measRes]) => {
+      setChildData({
+        child: childRes.data.data,
+        measurements: (measRes.data.data || []).reverse()
+      });
+    }).catch(console.error).finally(() => setChildLoading(false));
+  }, [selectedChildId]);
 
   const openModal = async (type: 'stunting' | 'normal') => {
     setModalType(type);
@@ -143,7 +170,7 @@ export default function DashboardPage() {
   };
   
   return (
-    <div className="page-content" style={{ height: '100%', padding: '16px 24px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div className="page-content" style={{ height: '100%', padding: '16px 24px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexShrink: 0 }}>
@@ -198,7 +225,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Growth Charts - Constrained height so they don't stretch */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', flex: 1, minHeight: 0, paddingBottom: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', minHeight: '350px', flexShrink: 0, marginBottom: '24px' }}>
         {/* BB */}
         <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h3 style={{
@@ -240,6 +267,93 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Grafik Per Anak */}
+      <div style={{ background: '#fff', borderRadius: '10px', padding: '16px', border: '1px solid #e8edf2', flexShrink: 0, marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>Grafik Pertumbuhan per Anak</h2>
+          <select
+            className="input-penting"
+            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', minWidth: '250px' }}
+            value={selectedChildId}
+            onChange={(e) => setSelectedChildId(e.target.value)}
+          >
+            <option value="">-- Pilih Anak --</option>
+            {childrenList.map(c => (
+              <option key={c.id} value={c.id}>{c.nama_anak} ({c.nik})</option>
+            ))}
+          </select>
+        </div>
+
+        {childLoading ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Memuat data anak...</div>
+        ) : !selectedChildId ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Silakan pilih anak pada dropdown di atas untuk melihat grafik pertumbuhannya.</div>
+        ) : childData && childData.measurements.length === 0 ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Belum ada data pengukuran untuk {childData.child.nama_anak}.</div>
+        ) : childData ? (
+          <div style={{ height: '350px' }}>
+            <Line
+              data={{
+                labels: childData.measurements.map(m => {
+                  const date = new Date(m.tanggal_kunjungan);
+                  return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+                }),
+                datasets: [
+                  {
+                    label: 'Berat Badan (kg)',
+                    data: childData.measurements.map(m => m.berat_badan),
+                    borderColor: '#3b82f6',
+                    backgroundColor: '#3b82f6',
+                    yAxisID: 'y',
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                  },
+                  {
+                    label: 'Tinggi Badan (cm)',
+                    data: childData.measurements.map(m => m.tinggi_badan),
+                    borderColor: '#10b981',
+                    backgroundColor: '#10b981',
+                    yAxisID: 'y1',
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                  }
+                ]
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index' as const, intersect: false },
+                plugins: {
+                  legend: { position: 'top' as const },
+                  title: { display: false }
+                },
+                scales: {
+                  x: { grid: { display: false } },
+                  y: { 
+                    type: 'linear' as const, 
+                    display: true, 
+                    position: 'left' as const, 
+                    title: { display: true, text: 'Berat Badan (kg)' },
+                    grid: { color: '#f1f5f9' },
+                    border: { display: false }
+                  },
+                  y1: { 
+                    type: 'linear' as const, 
+                    display: true, 
+                    position: 'right' as const, 
+                    grid: { drawOnChartArea: false }, 
+                    title: { display: true, text: 'Tinggi Badan (cm)' },
+                    border: { display: false }
+                  },
+                }
+              }}
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Modal Popup */}

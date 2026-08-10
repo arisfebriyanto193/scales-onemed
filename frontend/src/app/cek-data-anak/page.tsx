@@ -129,7 +129,8 @@ export default function CekDataAnak() {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      height: '100vh',
+      overflowY: 'auto',
       background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #f0fdf4 100%)',
       fontFamily: 'inherit',
       color: 'var(--text-main)',
