@@ -86,7 +86,7 @@ export default function DashboardPage() {
   // State for Grafik Per Anak
   const [childrenList, setChildrenList] = useState<any[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string>('');
-  const [childData, setChildData] = useState<{ child: any, measurements: any[] } | null>(null);
+  const [childData, setChildData] = useState<{ child: any, measurements: any[], bbRef: GrowthRef[], tbRef: GrowthRef[] } | null>(null);
   const [childLoading, setChildLoading] = useState(false);
 
   const fetchDashboardData = (selectedGender: string) => {
@@ -121,11 +121,24 @@ export default function DashboardPage() {
       api.get(`/children/${selectedChildId}`),
       api.get(`/measurements/child/${selectedChildId}`)
     ]).then(([childRes, measRes]) => {
-      setChildData({
-        child: childRes.data.data,
-        measurements: (measRes.data.data || []).reverse()
-      });
-    }).catch(console.error).finally(() => setChildLoading(false));
+      const child = childRes.data.data;
+      const measurements = (measRes.data.data || []).reverse();
+      
+      Promise.all([
+        api.get(`/dashboard/growth-chart?jenis_kelamin=${child.jenis_kelamin}&tipe=BB_U`),
+        api.get(`/dashboard/growth-chart?jenis_kelamin=${child.jenis_kelamin}&tipe=TB_U`)
+      ]).then(([bbRes, tbRes]) => {
+        setChildData({
+          child,
+          measurements,
+          bbRef: bbRes.data.data.referensi || [],
+          tbRef: tbRes.data.data.referensi || []
+        });
+      }).catch(console.error).finally(() => setChildLoading(false));
+    }).catch(err => {
+      console.error(err);
+      setChildLoading(false);
+    });
   }, [selectedChildId]);
 
   const openModal = async (type: 'stunting' | 'normal') => {
@@ -154,19 +167,38 @@ export default function DashboardPage() {
     },
   });
 
-  const makeChart = (refs: GrowthRef[], color: string, isWeight: boolean) => {
+  const makeChart = (refs: GrowthRef[], color: string, isWeight: boolean, childMeasurements?: any[], childName?: string) => {
     const labels = refs.map(r => r.usia_bulan);
     const pointStyle = isWeight ? 'circle' : 'triangle';
-    return {
-      labels,
-      datasets: [
-        { label: '-3 SD', data: refs.map(r => r.sd_minus3), borderColor: '#ef4444' /* Tailwind red-500 */, borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
-        { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b' /* Tailwind amber-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
-        { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 3, pointStyle, backgroundColor: color, fill: false },
-        { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e' /* Tailwind green-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
-        { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
-      ],
-    };
+    const datasets: any[] = [
+      { label: '-3 SD', data: refs.map(r => r.sd_minus3), borderColor: '#ef4444' /* Tailwind red-500 */, borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
+      { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b' /* Tailwind amber-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
+      { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 3, pointStyle, backgroundColor: color, fill: false },
+      { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e' /* Tailwind green-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
+      { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
+    ];
+
+    if (childMeasurements && childName) {
+      const childDataPoints = labels.map(usia => {
+        const m = childMeasurements.find(meas => Math.round(meas.usia_bulan) === usia);
+        return m ? (isWeight ? m.berat_badan : m.tinggi_badan) : null;
+      });
+      datasets[2].pointRadius = 0; // Hide median points when showing child data
+      datasets.push({
+        label: childName,
+        data: childDataPoints,
+        borderColor: '#0f172a', // Dark slate color for visibility
+        backgroundColor: '#0f172a',
+        borderWidth: 2.5,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointStyle: pointStyle,
+        fill: false,
+        spanGaps: true // Connects lines across missing months
+      });
+    }
+
+    return { labels, datasets };
   };
   
   return (
@@ -293,65 +325,44 @@ export default function DashboardPage() {
         ) : childData && childData.measurements.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Belum ada data pengukuran untuk {childData.child.nama_anak}.</div>
         ) : childData ? (
-          <div style={{ height: '350px' }}>
-            <Line
-              data={{
-                labels: childData.measurements.map(m => {
-                  const date = new Date(m.tanggal_kunjungan);
-                  return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
-                }),
-                datasets: [
-                  {
-                    label: 'Berat Badan (kg)',
-                    data: childData.measurements.map(m => m.berat_badan),
-                    borderColor: '#3b82f6',
-                    backgroundColor: '#3b82f6',
-                    yAxisID: 'y',
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                  },
-                  {
-                    label: 'Tinggi Badan (cm)',
-                    data: childData.measurements.map(m => m.tinggi_badan),
-                    borderColor: '#10b981',
-                    backgroundColor: '#10b981',
-                    yAxisID: 'y1',
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                  }
-                ]
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index' as const, intersect: false },
-                plugins: {
-                  legend: { position: 'top' as const },
-                  title: { display: false }
-                },
-                scales: {
-                  x: { grid: { display: false } },
-                  y: { 
-                    type: 'linear' as const, 
-                    display: true, 
-                    position: 'left' as const, 
-                    title: { display: true, text: 'Berat Badan (kg)' },
-                    grid: { color: '#f1f5f9' },
-                    border: { display: false }
-                  },
-                  y1: { 
-                    type: 'linear' as const, 
-                    display: true, 
-                    position: 'right' as const, 
-                    grid: { drawOnChartArea: false }, 
-                    title: { display: true, text: 'Tinggi Badan (cm)' },
-                    border: { display: false }
-                  },
-                }
-              }}
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', minHeight: '350px' }}>
+            {/* BB */}
+            <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <h3 style={{
+                fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px',
+                paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
+                display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
+              }}>
+                <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
+                Berat Badan (BB/U) - {childData.child.nama_anak}
+              </h3>
+              <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+                {childData.bbRef.length > 0 ? (
+                  <Line data={makeChart(childData.bbRef, childData.child.jenis_kelamin === 'Laki-laki' ? '#3b82f6' : '#ec4899', true, childData.measurements, childData.child.nama_anak)} options={chartOptions('Berat Badan (kg)')} />
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>Data referensi belum tersedia.</div>
+                )}
+              </div>
+            </div>
+
+            {/* TB */}
+            <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <h3 style={{
+                fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px',
+                paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
+                display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
+              }}>
+                <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
+                Tinggi Badan (TB/U) - {childData.child.nama_anak}
+              </h3>
+              <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+                {childData.tbRef.length > 0 ? (
+                  <Line data={makeChart(childData.tbRef, childData.child.jenis_kelamin === 'Laki-laki' ? '#3b82f6' : '#ec4899', false, childData.measurements, childData.child.nama_anak)} options={chartOptions('Tinggi Badan (cm)')} />
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>Data referensi belum tersedia.</div>
+                )}
+              </div>
+            </div>
           </div>
         ) : null}
       </div>
