@@ -89,6 +89,11 @@ export default function DashboardPage() {
   const [childData, setChildData] = useState<{ child: any, measurements: any[], bbRef: GrowthRef[], tbRef: GrowthRef[] } | null>(null);
   const [childLoading, setChildLoading] = useState(false);
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+  };
+
   const fetchDashboardData = (selectedGender: string) => {
     setLoading(true);
     Promise.all([
@@ -173,7 +178,7 @@ export default function DashboardPage() {
     const datasets: any[] = [
       { label: '-3 SD', data: refs.map(r => r.sd_minus3), borderColor: '#ef4444' /* Tailwind red-500 */, borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
       { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b' /* Tailwind amber-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
-      { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 3, pointStyle, backgroundColor: color, fill: false },
+      { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 0, pointStyle, backgroundColor: color, fill: false },
       { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e' /* Tailwind green-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
       { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
     ];
@@ -325,7 +330,8 @@ export default function DashboardPage() {
         ) : childData && childData.measurements.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Belum ada data pengukuran untuk {childData.child.nama_anak}.</div>
         ) : childData ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', minHeight: '350px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', minHeight: '350px' }}>
             {/* BB */}
             <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
               <h3 style={{
@@ -363,6 +369,77 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Riwayat Pengukuran Table */}
+          <div style={{ background: '#fff', borderRadius: '10px', padding: '0', border: '1px solid #e8edf2', overflow: 'hidden' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid #e8edf2', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#0f172a' }}>Riwayat Pengukuran</h3>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table-penting" style={{ border: 'none', minWidth: '100%', fontSize: '0.85rem' }}>
+                <thead style={{ background: '#f8fafc' }}>
+                  <tr>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Tanggal</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Usia</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Berat Badan</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Tinggi Badan</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Kesehatan</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Status (BB/U)</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Status (TB/U)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {childData.measurements.map((m, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap' }}>
+                        {formatDate(m.tanggal_kunjungan)}
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#64748b' }}>
+                        {m.usia_bulan} bulan
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ display: 'inline-flex', padding: '4px 10px', background: '#eff6ff', color: '#1d4ed8', borderRadius: '6px', fontWeight: 600, border: '1px solid #bfdbfe' }}>
+                          {m.berat_badan} kg
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ display: 'inline-flex', padding: '4px 10px', background: '#ecfdf5', color: '#047857', borderRadius: '6px', fontWeight: 600, border: '1px solid #a7f3d0' }}>
+                          {m.tinggi_badan} cm
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#64748b' }}>
+                        {m.status_kesehatan || '-'}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span className={`badge ${
+                          m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') 
+                            ? 'badge-buruk' 
+                            : m.status_bb_u?.includes('Lebih') || m.status_bb_u?.includes('Risiko')
+                            ? 'badge-kurang'
+                            : 'badge-normal'
+                        }`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {m.status_bb_u || '-'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span className={`badge ${
+                          m.status_tb_u?.includes('Pendek') 
+                            ? 'badge-buruk' 
+                            : m.status_tb_u?.includes('Tinggi')
+                            ? 'badge-kurang'
+                            : 'badge-normal'
+                        }`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {m.status_tb_u || '-'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           </div>
         ) : null}
       </div>
