@@ -90,8 +90,16 @@ export default function DashboardPage() {
   const [childLoading, setChildLoading] = useState(false);
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+    const cleanDate = dateString.split('T')[0];
+    const parts = cleanDate.split('-');
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      return `${day}/${month}/${year}`;
+    }
     const date = new Date(dateString);
-    return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+    if (isNaN(date.getTime())) return dateString;
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
   };
 
   const fetchDashboardData = (selectedGender: string) => {
@@ -149,6 +157,7 @@ export default function DashboardPage() {
   const openModal = async (type: 'stunting' | 'normal') => {
     setModalType(type);
     setModalLoading(true);
+    setModalData([]);
     try {
       const res = await api.get(`/dashboard/stats/details?type=${type}`);
       setModalData(res.data.data || []);
@@ -176,11 +185,11 @@ export default function DashboardPage() {
     const labels = refs.map(r => r.usia_bulan);
     const pointStyle = isWeight ? 'circle' : 'triangle';
     const datasets: any[] = [
-      { label: '-3 SD', data: refs.map(r => r.sd_minus3), borderColor: '#ef4444' /* Tailwind red-500 */, borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
-      { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b' /* Tailwind amber-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
-      { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 0, pointStyle, backgroundColor: color, fill: false },
-      { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e' /* Tailwind green-500 */, borderWidth: 1.5, pointRadius: 0, fill: false },
-      { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false },
+      { label: '-3 SD', data: refs.map(r => r.sd_minus3), borderColor: '#ef4444' /* Tailwind red-500 */, borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, order: 2 },
+      { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b' /* Tailwind amber-500 */, borderWidth: 1.5, pointRadius: 0, fill: false, order: 2 },
+      { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 0, pointStyle, backgroundColor: color, fill: false, order: 2 },
+      { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e' /* Tailwind green-500 */, borderWidth: 1.5, pointRadius: 0, fill: false, order: 2 },
+      { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, order: 2 },
     ];
 
     if (childMeasurements && childName) {
@@ -199,7 +208,8 @@ export default function DashboardPage() {
         pointHoverRadius: 8,
         pointStyle: pointStyle,
         fill: false,
-        spanGaps: true // Connects lines across missing months
+        spanGaps: true, // Connects lines across missing months
+        order: 1 // Drawn ON TOP of reference lines
       });
     }
 

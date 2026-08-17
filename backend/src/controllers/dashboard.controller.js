@@ -8,10 +8,28 @@ const db = require('../config/database');
 // GET /api/dashboard/stats
 const getStats = async (req, res) => {
   try {
-    const [[totalAnak]]     = await db.query('SELECT COUNT(*) AS total FROM children');
+    const [[totalAnak]]       = await db.query('SELECT COUNT(*) AS total FROM children');
     const [[totalPengukuran]] = await db.query('SELECT COUNT(*) AS total FROM measurements');
-    const [[totalStunting]] = await db.query('SELECT COUNT(*) AS total FROM nutritional_status WHERE is_stunting = 1');
-    const [[totalNormal]]   = await db.query('SELECT COUNT(*) AS total FROM nutritional_status WHERE status_keseluruhan = "Gizi Baik/Normal"');
+    
+    const [[totalStunting]]   = await db.query(`
+      SELECT COUNT(*) AS total
+      FROM children c
+      JOIN measurements m ON m.id = (
+        SELECT id FROM measurements WHERE child_id = c.id ORDER BY tanggal_kunjungan DESC, id DESC LIMIT 1
+      )
+      JOIN nutritional_status ns ON m.id = ns.measurement_id
+      WHERE ns.is_stunting = 1
+    `);
+
+    const [[totalNormal]]     = await db.query(`
+      SELECT COUNT(*) AS total
+      FROM children c
+      JOIN measurements m ON m.id = (
+        SELECT id FROM measurements WHERE child_id = c.id ORDER BY tanggal_kunjungan DESC, id DESC LIMIT 1
+      )
+      JOIN nutritional_status ns ON m.id = ns.measurement_id
+      WHERE ns.status_keseluruhan = "Gizi Baik/Normal" AND ns.is_stunting = 0
+    `);
 
     const [statusDist] = await db.query(
       `SELECT status_keseluruhan, COUNT(*) AS jumlah
@@ -21,10 +39,10 @@ const getStats = async (req, res) => {
     res.json({
       success: true,
       data: {
-        total_anak       : totalAnak.total,
-        total_pengukuran : totalPengukuran.total,
-        total_stunting   : totalStunting.total,
-        total_normal     : totalNormal.total,
+        total_anak       : totalAnak ? totalAnak.total : 0,
+        total_pengukuran : totalPengukuran ? totalPengukuran.total : 0,
+        total_stunting   : totalStunting ? totalStunting.total : 0,
+        total_normal     : totalNormal ? totalNormal.total : 0,
         distribusi_status: statusDist,
       },
     });
@@ -86,21 +104,24 @@ const getStatDetails = async (req, res) => {
     // Base query logic to get the latest measurement status for each child
     if (type === 'stunting') {
       query = `
-        SELECT c.id, c.nik, c.nama_anak, c.jenis_kelamin, ns.status_keseluruhan
+        SELECT c.id, c.nik, c.nama_anak, c.jenis_kelamin,
+               IF(ns.is_stunting = 1, 'Terindikasi Stunting', ns.status_keseluruhan) AS status_keseluruhan
         FROM children c
-        JOIN measurements m ON c.id = m.child_id
+        JOIN measurements m ON m.id = (
+          SELECT id FROM measurements WHERE child_id = c.id ORDER BY tanggal_kunjungan DESC, id DESC LIMIT 1
+        )
         JOIN nutritional_status ns ON m.id = ns.measurement_id
         WHERE ns.is_stunting = 1
-        GROUP BY c.id
       `;
     } else if (type === 'normal') {
       query = `
         SELECT c.id, c.nik, c.nama_anak, c.jenis_kelamin, ns.status_keseluruhan
         FROM children c
-        JOIN measurements m ON c.id = m.child_id
+        JOIN measurements m ON m.id = (
+          SELECT id FROM measurements WHERE child_id = c.id ORDER BY tanggal_kunjungan DESC, id DESC LIMIT 1
+        )
         JOIN nutritional_status ns ON m.id = ns.measurement_id
-        WHERE ns.status_keseluruhan = "Gizi Baik/Normal"
-        GROUP BY c.id
+        WHERE ns.status_keseluruhan = "Gizi Baik/Normal" AND ns.is_stunting = 0
       `;
     } else {
       return res.status(400).json({ success: false, message: 'Tipe tidak valid.' });
