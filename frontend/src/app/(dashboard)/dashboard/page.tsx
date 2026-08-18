@@ -51,6 +51,22 @@ interface Stats {
   total_normal: number;
 }
 
+function badgeStatus(status?: string) {
+  if (!status) return 'badge-normal';
+  const map: Record<string, string> = {
+    'Gizi Baik/Normal' : 'badge-normal',
+    'Berat Badan Normal': 'badge-normal',
+    'Tinggi Normal'    : 'badge-normal',
+    'Kurang Gizi'      : 'badge-kurang',
+    'Pendek'           : 'badge-kurang',
+    'Gizi Buruk'       : 'badge-buruk',
+    'Sangat Pendek'    : 'badge-buruk',
+    'Gizi Lebih'       : 'badge-lebih',
+    'Tinggi'           : 'badge-lebih',
+  };
+  return map[status] || 'badge-normal';
+}
+
 interface GrowthRef {
   usia_bulan: number;
   sd_minus3: number;
@@ -422,26 +438,18 @@ export default function DashboardPage() {
                         {m.status_kesehatan || '-'}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        <span className={`badge ${
-                          m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') 
-                            ? 'badge-buruk' 
-                            : m.status_bb_u?.includes('Lebih') || m.status_bb_u?.includes('Risiko')
-                            ? 'badge-kurang'
-                            : 'badge-normal'
-                        }`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                          {m.status_bb_u || '-'}
-                        </span>
+                        {m.status_bb_u || m.status_bb_umur ? (
+                          <span className={`badge ${badgeStatus(m.status_bb_u || m.status_bb_umur)}`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                            {m.status_bb_u || m.status_bb_umur}
+                          </span>
+                        ) : '-'}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        <span className={`badge ${
-                          m.status_tb_u?.includes('Pendek') 
-                            ? 'badge-buruk' 
-                            : m.status_tb_u?.includes('Tinggi')
-                            ? 'badge-kurang'
-                            : 'badge-normal'
-                        }`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                          {m.status_tb_u || '-'}
-                        </span>
+                        {m.status_tb_u || m.status_tb_umur ? (
+                          <span className={`badge ${badgeStatus(m.status_tb_u || m.status_tb_umur)}`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                            {m.status_tb_u || m.status_tb_umur}
+                          </span>
+                        ) : '-'}
                       </td>
                     </tr>
                   ))}

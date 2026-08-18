@@ -26,9 +26,12 @@ const getAll = async (req, res) => {
   try {
     const { child_id, search } = req.query;
     let sql = `
-      SELECT m.*, c.nama_anak, c.tanggal_lahir, c.jenis_kelamin, c.wilayah
+      SELECT m.*, c.nama_anak, c.tanggal_lahir, c.jenis_kelamin, c.wilayah,
+             ns.status_bb_umur AS status_bb_u, ns.status_tb_umur AS status_tb_u,
+             ns.status_bb_umur, ns.status_tb_umur, ns.status_keseluruhan
       FROM measurements m
       JOIN children c ON m.child_id = c.id
+      LEFT JOIN nutritional_status ns ON m.id = ns.measurement_id
       WHERE 1=1`;
     const params = [];
 
@@ -56,8 +59,12 @@ const getAll = async (req, res) => {
 const getById = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT m.*, c.nama_anak, c.tanggal_lahir, c.jenis_kelamin, c.wilayah
-       FROM measurements m JOIN children c ON m.child_id = c.id
+      `SELECT m.*, c.nama_anak, c.tanggal_lahir, c.jenis_kelamin, c.wilayah,
+              ns.status_bb_umur AS status_bb_u, ns.status_tb_umur AS status_tb_u,
+              ns.status_bb_umur, ns.status_tb_umur, ns.status_keseluruhan
+       FROM measurements m
+       JOIN children c ON m.child_id = c.id
+       LEFT JOIN nutritional_status ns ON m.id = ns.measurement_id
        WHERE m.id = ?`, [req.params.id]
     );
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Data pengukuran tidak ditemukan.' });
@@ -71,8 +78,12 @@ const getById = async (req, res) => {
 const getByChildId = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT m.*, c.nama_anak, c.tanggal_lahir, c.jenis_kelamin
-       FROM measurements m JOIN children c ON m.child_id = c.id
+      `SELECT m.*, c.nama_anak, c.tanggal_lahir, c.jenis_kelamin,
+              ns.status_bb_umur AS status_bb_u, ns.status_tb_umur AS status_tb_u,
+              ns.status_bb_umur, ns.status_tb_umur, ns.status_keseluruhan
+       FROM measurements m
+       JOIN children c ON m.child_id = c.id
+       LEFT JOIN nutritional_status ns ON m.id = ns.measurement_id
        WHERE m.child_id = ? ORDER BY m.id DESC`,
       [req.params.childId]
     );

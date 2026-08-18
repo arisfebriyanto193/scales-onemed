@@ -294,16 +294,7 @@ function DataAnakInner() {
               ) : data.map((c, i) => (
                 <tr key={c.id}>
                   <td style={{ textAlign: 'center', padding: '6px' }}>{i + 1}</td>
-                  <td style={{ padding: '6px' }}>
-                    <div 
-                      className="name-detail-link"
-                      style={{ fontWeight: 600, cursor: 'pointer', color: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      onClick={() => openDetail(c)}
-                      title="Klik untuk lihat detail lengkap"
-                    >
-                      <span>{c.nama_anak}</span>
-                    </div>
-                  </td>
+                  <td style={{ padding: '6px', fontWeight: 600, color: '#0f172a' }}>{c.nama_anak}</td>
                   <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', padding: '6px' }}>{c.nik}</td>
                   <td style={{ whiteSpace: 'nowrap', padding: '6px' }}>
                     {c.tanggal_lahir ? new Date(c.tanggal_lahir).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}

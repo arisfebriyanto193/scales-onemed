@@ -19,6 +19,22 @@ interface Child { id: number; nama_anak: string; }
 
 const EMPTY = { child_id: '', tanggal_kunjungan: '', berat_badan: '', tinggi_badan: '', catatan: '' };
 
+function badgeStatus(status?: string) {
+  if (!status) return 'badge-normal';
+  const map: Record<string, string> = {
+    'Gizi Baik/Normal' : 'badge-normal',
+    'Berat Badan Normal': 'badge-normal',
+    'Tinggi Normal'    : 'badge-normal',
+    'Kurang Gizi'      : 'badge-kurang',
+    'Pendek'           : 'badge-kurang',
+    'Gizi Buruk'       : 'badge-buruk',
+    'Sangat Pendek'    : 'badge-buruk',
+    'Gizi Lebih'       : 'badge-lebih',
+    'Tinggi'           : 'badge-lebih',
+  };
+  return map[status] || 'badge-normal';
+}
+
 // ─── Field Wrapper ────────────────────────────────────────────
 const formatDate = (dateStr?: string) => {
   if (!dateStr) return '-';
@@ -621,22 +637,18 @@ export default function DataPengukuranPage() {
                               <td style={{ padding: '12px 20px', fontWeight: 500, color: '#10b981' }}>{m.tinggi_badan}</td>
                               <td style={{ padding: '12px 20px', fontSize: '0.8rem', color: '#64748b' }}>{m.status_kesehatan || '-'}</td>
                               <td style={{ padding: '12px 20px' }}>
-                                <span style={{
-                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#fee2e2' : '#dcfce7',
-                                  color: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#b91c1c' : '#15803d'
-                                }}>
-                                  {m.status_bb_u || '-'}
-                                </span>
+                                {m.status_bb_u || m.status_bb_umur ? (
+                                  <span className={`badge ${badgeStatus(m.status_bb_u || m.status_bb_umur)}`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                    {m.status_bb_u || m.status_bb_umur}
+                                  </span>
+                                ) : '-'}
                               </td>
                               <td style={{ padding: '12px 20px' }}>
-                                <span style={{
-                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: m.status_tb_u?.includes('Pendek') ? '#fee2e2' : '#dcfce7',
-                                  color: m.status_tb_u?.includes('Pendek') ? '#b91c1c' : '#15803d'
-                                }}>
-                                  {m.status_tb_u || '-'}
-                                </span>
+                                {m.status_tb_u || m.status_tb_umur ? (
+                                  <span className={`badge ${badgeStatus(m.status_tb_u || m.status_tb_umur)}`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                    {m.status_tb_u || m.status_tb_umur}
+                                  </span>
+                                ) : '-'}
                               </td>
                             </tr>
                           ))}

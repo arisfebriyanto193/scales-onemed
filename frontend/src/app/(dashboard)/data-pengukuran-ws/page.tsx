@@ -4,10 +4,89 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Line } from 'react-chartjs-2';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+
+interface GrowthRef {
+  usia_bulan: number;
+  sd_minus3: number;
+  sd_minus2: number;
+  median: number;
+  sd_plus2: number;
+  sd_plus3: number;
+}
+
+function badgeStatus(status?: string) {
+  if (!status) return 'badge-normal';
+  const map: Record<string, string> = {
+    'Gizi Baik/Normal' : 'badge-normal',
+    'Berat Badan Normal': 'badge-normal',
+    'Tinggi Normal'    : 'badge-normal',
+    'Kurang Gizi'      : 'badge-kurang',
+    'Pendek'           : 'badge-kurang',
+    'Gizi Buruk'       : 'badge-buruk',
+    'Sangat Pendek'    : 'badge-buruk',
+    'Gizi Lebih'       : 'badge-lebih',
+    'Tinggi'           : 'badge-lebih',
+  };
+  return map[status] || 'badge-normal';
+}
+
+const IconChartLine = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+);
+
+const chartOptions = (label: string) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { position: 'top' as const, labels: { font: { size: 10 }, usePointStyle: true, boxWidth: 6 } },
+    title: { display: false },
+  },
+  scales: {
+    x: { grid: { color: '#f1f5f9' }, title: { display: true, text: 'Usia (bulan)', font: { size: 10 } }, ticks: { font: { size: 9 } } },
+    y: { grid: { color: '#f1f5f9' }, title: { display: true, text: label, font: { size: 10 } }, ticks: { font: { size: 9 } } },
+  },
+});
+
+const makeChart = (refs: GrowthRef[], color: string, isWeight: boolean, childMeasurements?: any[], childName?: string) => {
+  const labels = refs.map(r => r.usia_bulan);
+  const pointStyle = isWeight ? 'circle' : 'triangle';
+  const datasets: any[] = [
+    { label: '-3 SD', data: refs.map(r => r.sd_minus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, order: 2 },
+    { label: '-2 SD', data: refs.map(r => r.sd_minus2), borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0, fill: false, order: 2 },
+    { label: 'Median', data: refs.map(r => r.median),   borderColor: color,     borderWidth: 2,   pointRadius: 0, pointStyle, backgroundColor: color, fill: false, order: 2 },
+    { label: '+2 SD', data: refs.map(r => r.sd_plus2), borderColor: '#22c55e', borderWidth: 1.5, pointRadius: 0, fill: false, order: 2 },
+    { label: '+3 SD', data: refs.map(r => r.sd_plus3), borderColor: '#ef4444', borderWidth: 1, borderDash: [4,3], pointRadius: 0, fill: false, order: 2 },
+  ];
+
+  if (childMeasurements && childName) {
+    const childDataPoints = labels.map(usia => {
+      const m = childMeasurements.find(meas => Math.round(meas.usia_bulan) === usia);
+      return m ? (isWeight ? m.berat_badan : m.tinggi_badan) : null;
+    });
+    datasets[2].pointRadius = 0;
+    datasets.push({
+      label: childName,
+      data: childDataPoints,
+      borderColor: '#0f172a',
+      backgroundColor: '#0f172a',
+      borderWidth: 2.5,
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      pointStyle: pointStyle,
+      fill: false,
+      spanGaps: true,
+      order: 1
+    });
+  }
+
+  return { labels, datasets };
+};
 
 // ─── Tipe Data ────────────────────────────────────────────────
 interface Measurement {
@@ -222,7 +301,7 @@ export default function DataPengukuranPage() {
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
   const [detailModal, setDetailModal] = useState(false);
-  const [detailData, setDetailData] = useState<{ child: any, measurements: any[] } | null>(null);
+  const [detailData, setDetailData] = useState<{ child: any, measurements: any[], bbRef: GrowthRef[], tbRef: GrowthRef[] } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState('');
 
@@ -236,9 +315,20 @@ export default function DataPengukuranPage() {
         api.get(`/children/${childId}`),
         api.get(`/measurements/child/${childId}`)
       ]);
+      const child = childRes.data.data;
+      const measurements = measRes.data.data || [];
+      const genderStr = (child.jenis_kelamin === 'L' || child.jenis_kelamin === 'Laki-laki') ? 'Laki-laki' : 'Perempuan';
+
+      const [bbRes, tbRes] = await Promise.all([
+        api.get(`/dashboard/growth-chart?jenis_kelamin=${genderStr}&tipe=BB_U`),
+        api.get(`/dashboard/growth-chart?jenis_kelamin=${genderStr}&tipe=TB_U`)
+      ]);
+
       setDetailData({
-        child: childRes.data.data,
-        measurements: measRes.data.data || []
+        child,
+        measurements,
+        bbRef: bbRes.data.data.referensi || [],
+        tbRef: tbRes.data.data.referensi || []
       });
     } catch (err: any) {
       setDetailError(err.response?.data?.message || 'Gagal mengambil data detail anak.');
@@ -766,34 +856,67 @@ export default function DataPengukuranPage() {
                 {detailData.measurements.length > 0 && (
                   <div style={{ border: '1px solid #e2e8f0', padding: '20px', borderRadius: '12px' }}>
                     <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>Grafik Pertumbuhan</h4>
-                    <div style={{ height: '300px', position: 'relative' }}>
-                      <Line 
-                        data={{
-                          labels: detailData.measurements.map(m => {
-                            const date = new Date(m.tanggal_kunjungan);
-                            return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-                          }),
-                          datasets: [
-                            {
-                              label: 'Berat Badan (kg)',
-                              data: detailData.measurements.map(m => m.berat_badan),
-                              borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.5)', yAxisID: 'y', tension: 0.3,
-                            },
-                            {
-                              label: 'Tinggi Badan (cm)',
-                              data: detailData.measurements.map(m => m.tinggi_badan),
-                              borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.5)', yAxisID: 'y1', tension: 0.3,
-                            }
-                          ]
-                        }}
-                        options={{
-                          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index' as const, intersect: false },
-                          scales: {
-                            y: { type: 'linear' as const, display: true, position: 'left' as const, title: { display: true, text: 'Berat (kg)' } },
-                            y1: { type: 'linear' as const, display: true, position: 'right' as const, grid: { drawOnChartArea: false }, title: { display: true, text: 'Tinggi (cm)' } },
-                          }
-                        }} 
-                      />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', minHeight: '380px' }}>
+                      {/* BB */}
+                      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        <h3 style={{
+                          fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px',
+                          paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
+                          display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
+                        }}>
+                          <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
+                          Berat Badan (BB/U) - {detailData.child.nama_anak}
+                        </h3>
+                        <div style={{ flex: 1, position: 'relative', minHeight: '300px' }}>
+                          {detailData.bbRef && detailData.bbRef.length > 0 ? (
+                            <Line
+                              data={makeChart(
+                                detailData.bbRef,
+                                detailData.child.jenis_kelamin === 'L' || detailData.child.jenis_kelamin === 'Laki-laki' ? '#3b82f6' : '#ec4899',
+                                true,
+                                detailData.measurements,
+                                detailData.child.nama_anak
+                              )}
+                              options={chartOptions('Berat Badan (kg)')}
+                            />
+                          ) : (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                              Data referensi belum tersedia.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* TB */}
+                      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        <h3 style={{
+                          fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px',
+                          paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
+                          display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
+                        }}>
+                          <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
+                          Tinggi Badan (TB/U) - {detailData.child.nama_anak}
+                        </h3>
+                        <div style={{ flex: 1, position: 'relative', minHeight: '300px' }}>
+                          {detailData.tbRef && detailData.tbRef.length > 0 ? (
+                            <Line
+                              data={makeChart(
+                                detailData.tbRef,
+                                detailData.child.jenis_kelamin === 'L' || detailData.child.jenis_kelamin === 'Laki-laki' ? '#3b82f6' : '#ec4899',
+                                false,
+                                detailData.measurements,
+                                detailData.child.nama_anak
+                              )}
+                              options={chartOptions('Tinggi Badan (cm)')}
+                            />
+                          ) : (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                              Data referensi belum tersedia.
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -826,22 +949,18 @@ export default function DataPengukuranPage() {
                               <td style={{ padding: '12px 20px', fontWeight: 500, color: '#10b981' }}>{m.tinggi_badan}</td>
                               <td style={{ padding: '12px 20px', fontSize: '0.8rem', color: '#64748b' }}>{m.status_kesehatan || '-'}</td>
                               <td style={{ padding: '12px 20px' }}>
-                                <span style={{
-                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#fee2e2' : '#dcfce7',
-                                  color: m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') ? '#b91c1c' : '#15803d'
-                                }}>
-                                  {m.status_bb_u || '-'}
-                                </span>
+                                {m.status_bb_u || m.status_bb_umur ? (
+                                  <span className={`badge ${badgeStatus(m.status_bb_u || m.status_bb_umur)}`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                    {m.status_bb_u || m.status_bb_umur}
+                                  </span>
+                                ) : '-'}
                               </td>
                               <td style={{ padding: '12px 20px' }}>
-                                <span style={{
-                                  padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
-                                  background: m.status_tb_u?.includes('Pendek') ? '#fee2e2' : '#dcfce7',
-                                  color: m.status_tb_u?.includes('Pendek') ? '#b91c1c' : '#15803d'
-                                }}>
-                                  {m.status_tb_u || '-'}
-                                </span>
+                                {m.status_tb_u || m.status_tb_umur ? (
+                                  <span className={`badge ${badgeStatus(m.status_tb_u || m.status_tb_umur)}`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                                    {m.status_tb_u || m.status_tb_umur}
+                                  </span>
+                                ) : '-'}
                               </td>
                             </tr>
                           ))}
