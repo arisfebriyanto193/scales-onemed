@@ -255,40 +255,48 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat Cards - Reduced padding and text size */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '12px', flexShrink: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginBottom: '10px', flexShrink: 0 }}>
         
         {/* Total Anak */}
-        <div onClick={() => router.push('/data-anak')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#eff6ff' /* Tailwind blue-50 */, color: '#2563eb' /* Tailwind blue-600 */ }}><IconBaby /></div>
-          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Total Anak</p>
-          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_anak ?? '-'}</p>
+        <div onClick={() => router.push('/data-anak')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '10px' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eff6ff' /* Tailwind blue-50 */, color: '#2563eb' /* Tailwind blue-600 */, flexShrink: 0 }}><IconBaby /></div>
+          <div>
+            <p style={{ fontSize: '0.65rem', color: '#64748b', marginBottom: '2px', lineHeight: 1 }}>Total Anak</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>{loading ? '...' : stats?.total_anak ?? '-'}</p>
+          </div>
         </div>
 
         {/* Total Pengukuran */}
-        <div onClick={() => router.push('/data-pengukuran-ws')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#f5f3ff' /* Tailwind violet-50 */, color: '#7c3aed' /* Tailwind violet-600 */ }}><IconRuler /></div>
-          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Total Pengukuran</p>
-          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_pengukuran ?? '-'}</p>
+        <div onClick={() => router.push('/data-pengukuran-ws')} style={{ background: '#ffffff', border: '1px solid #e8edf2', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '10px' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f3ff' /* Tailwind violet-50 */, color: '#7c3aed' /* Tailwind violet-600 */, flexShrink: 0 }}><IconRuler /></div>
+          <div>
+            <p style={{ fontSize: '0.65rem', color: '#64748b', marginBottom: '2px', lineHeight: 1 }}>Total Pengukuran</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>{loading ? '...' : stats?.total_pengukuran ?? '-'}</p>
+          </div>
         </div>
 
         {/* Terindikasi Stunting */}
-        <div onClick={() => openModal('stunting')} style={{ background: '#ffffff', border: '1px solid #fecaca' /* Tailwind red-200 */, padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#fef2f2' /* Tailwind red-50 */, color: '#dc2626' /* Tailwind red-600 */ }}><IconWarning /></div>
-          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Terindikasi Stunting</p>
-          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_stunting ?? '-'}</p>
+        <div onClick={() => openModal('stunting')} style={{ background: '#ffffff', border: '1px solid #fecaca' /* Tailwind red-200 */, padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '10px' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef2f2' /* Tailwind red-50 */, color: '#dc2626' /* Tailwind red-600 */, flexShrink: 0 }}><IconWarning /></div>
+          <div>
+            <p style={{ fontSize: '0.65rem', color: '#64748b', marginBottom: '2px', lineHeight: 1 }}>Terindikasi Stunting</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>{loading ? '...' : stats?.total_stunting ?? '-'}</p>
+          </div>
         </div>
 
         {/* Gizi Baik */}
-        <div onClick={() => openModal('normal')} style={{ background: '#ffffff', border: '1px solid #bbf7d0' /* Tailwind green-200 */, padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px', background: '#f0fdf4' /* Tailwind green-50 */, color: '#16a34a' /* Tailwind green-600 */ }}><IconCheck /></div>
-          <p style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '2px' }}>Gizi Baik/Normal</p>
-          <p style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', lineHeight: 1.2 }}>{loading ? '...' : stats?.total_normal ?? '-'}</p>
+        <div onClick={() => openModal('normal')} style={{ background: '#ffffff', border: '1px solid #bbf7d0' /* Tailwind green-200 */, padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '10px' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0fdf4' /* Tailwind green-50 */, color: '#16a34a' /* Tailwind green-600 */, flexShrink: 0 }}><IconCheck /></div>
+          <div>
+            <p style={{ fontSize: '0.65rem', color: '#64748b', marginBottom: '2px', lineHeight: 1 }}>Gizi Baik/Normal</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>{loading ? '...' : stats?.total_normal ?? '-'}</p>
+          </div>
         </div>
 
       </div>
 
       {/* Growth Charts - Constrained height so they don't stretch */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', minHeight: '350px', flexShrink: 0, marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', height: '280px', flexShrink: 0, marginBottom: '12px' }}>
         {/* BB */}
         <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h3 style={{
