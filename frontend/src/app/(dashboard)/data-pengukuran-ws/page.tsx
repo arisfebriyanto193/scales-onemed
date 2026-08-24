@@ -857,18 +857,18 @@ export default function DataPengukuranPage() {
                   <div style={{ border: '1px solid #e2e8f0', padding: '20px', borderRadius: '12px' }}>
                     <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: '#1e293b' }}>Grafik Pertumbuhan</h4>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', minHeight: '380px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', minHeight: '350px' }}>
                       {/* BB */}
-                      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
                         <h3 style={{
-                          fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px',
+                          fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px',
                           paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
                           display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
                         }}>
                           <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
                           Berat Badan (BB/U) - {detailData.child.nama_anak}
                         </h3>
-                        <div style={{ flex: 1, position: 'relative', minHeight: '300px' }}>
+                        <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
                           {detailData.bbRef && detailData.bbRef.length > 0 ? (
                             <Line
                               data={makeChart(
@@ -889,16 +889,16 @@ export default function DataPengukuranPage() {
                       </div>
 
                       {/* TB */}
-                      <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <div style={{ background: '#fff', borderRadius: '10px', padding: '12px', border: '1px solid #e8edf2', display: 'flex', flexDirection: 'column', height: '100%' }}>
                         <h3 style={{
-                          fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px',
+                          fontSize: '0.85rem', fontWeight: 700, marginBottom: '8px',
                           paddingBottom: '8px', borderBottom: '1px solid #e8edf2', color: '#0f172a',
                           display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0
                         }}>
                           <span style={{ color: '#2563eb', display: 'flex' }}><IconChartLine /></span>
                           Tinggi Badan (TB/U) - {detailData.child.nama_anak}
                         </h3>
-                        <div style={{ flex: 1, position: 'relative', minHeight: '300px' }}>
+                        <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
                           {detailData.tbRef && detailData.tbRef.length > 0 ? (
                             <Line
                               data={makeChart(
