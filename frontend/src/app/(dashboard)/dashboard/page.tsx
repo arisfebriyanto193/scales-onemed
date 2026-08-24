@@ -421,6 +421,7 @@ export default function DashboardPage() {
                     <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Kesehatan</th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Status (BB/U)</th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Status (TB/U)</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', color: '#475569' }}>Stunting?</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -457,6 +458,19 @@ export default function DashboardPage() {
                           <span className={`badge ${badgeStatus(m.status_tb_u || m.status_tb_umur)}`} style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                             {m.status_tb_u || m.status_tb_umur}
                           </span>
+                        ) : '-'}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {m.status_tb_u || m.status_tb_umur ? (
+                          (m.status_tb_u || m.status_tb_umur) === 'Sangat Pendek' || (m.status_tb_u || m.status_tb_umur) === 'Pendek' ? (
+                            <span className="badge badge-buruk" style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                              Stunting
+                            </span>
+                          ) : (
+                            <span className="badge badge-normal" style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                              Normal
+                            </span>
+                          )
                         ) : '-'}
                       </td>
                     </tr>
