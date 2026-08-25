@@ -160,7 +160,7 @@ export default function CekDataAnak() {
         background: 'rgba(52, 211, 153, 0.1)' /* Tailwind emerald-400 */, filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
       }} />
 
-      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px' }}>       
+      <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '40px 20px' }}>       
         {/* Header */}
         <header style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -426,39 +426,39 @@ export default function CekDataAnak() {
                   <table className="table-penting" style={{ border: 'none', minWidth: '100%' }}>
                     <thead style={{ background: '#f8fafc' }}>
                       <tr>
-                        <th style={{ padding: '20px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Tanggal</th>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Usia</th>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Berat Badan</th>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Tinggi Badan</th>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Status Kesehatan</th>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Status Gizi (BB/U)</th>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Status Tinggi (TB/U)</th>
-                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Indikasi Stunting</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Tanggal</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem' }}>Usia</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem' }}>Berat Badan</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem' }}>Tinggi Badan</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem' }}>Status Kesehatan</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem' }}>Status Gizi (BB/U)</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem' }}>Status Tinggi (TB/U)</th>
+                        <th style={{ padding: '16px 12px', fontSize: '0.8rem' }}>Indikasi Stunting</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.measurements.map((m, i) => (
                         <tr key={i} style={{ transition: 'background 0.2s', borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '20px', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '16px 12px', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
                             {formatDate(m.tanggal_kunjungan)}
                           </td>
-                          <td style={{ padding: '20px', color: 'var(--text-muted)' }}>
+                          <td style={{ padding: '16px 12px', color: 'var(--text-muted)' }}>
                             {m.usia_bulan} bulan
                           </td>
-                          <td style={{ padding: '20px' }}>
+                          <td style={{ padding: '16px 12px' }}>
                             <span style={{ display: 'inline-flex', padding: '4px 12px', background: '#eff6ff', color: '#1d4ed8', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem', border: '1px solid #bfdbfe' }}>
                               {m.berat_badan} kg
                             </span>
                           </td>
-                          <td style={{ padding: '20px' }}>
+                          <td style={{ padding: '16px 12px' }}>
                             <span style={{ display: 'inline-flex', padding: '4px 12px', background: '#ecfdf5', color: '#047857', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem', border: '1px solid #a7f3d0' }}>
                               {m.tinggi_badan} cm
                             </span>
                           </td>
-                          <td style={{ padding: '20px', color: 'var(--text-muted)' }}>
+                          <td style={{ padding: '16px 12px', color: 'var(--text-muted)' }}>
                             {m.status_kesehatan || '-'}
                           </td>
-                          <td style={{ padding: '20px' }}>
+                          <td style={{ padding: '16px 12px' }}>
                             <span className={`badge ${
                               m.status_bb_u?.includes('Kurang') || m.status_bb_u?.includes('Sangat') 
                                 ? 'badge-buruk' 
@@ -469,7 +469,7 @@ export default function CekDataAnak() {
                               {m.status_bb_u || '-'}
                             </span>
                           </td>
-                          <td style={{ padding: '20px' }}>
+                          <td style={{ padding: '16px 12px' }}>
                             <span className={`badge ${
                               m.status_tb_u?.includes('Pendek') 
                                 ? 'badge-buruk' 
@@ -480,7 +480,7 @@ export default function CekDataAnak() {
                               {m.status_tb_u || '-'}
                             </span>
                           </td>
-                          <td style={{ padding: '20px' }}>
+                          <td style={{ padding: '16px 12px' }}>
                             <span className={`badge ${
                               m.status_tb_u?.toLowerCase().includes('pendek')
                                 ? 'badge-buruk'
