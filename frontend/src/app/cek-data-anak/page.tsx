@@ -43,8 +43,16 @@ export default function CekDataAnak() {
     setError('');
     setData(null);
     try {
+      let apiTanggalLahir = tanggalLahir;
+      if (tanggalLahir.includes('/')) {
+        const parts = tanggalLahir.split('/');
+        if (parts.length === 3) {
+          apiTanggalLahir = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+
       // Step 1: Verify NIK & Tanggal Lahir (Get JWT Token)
-      const verifyRes = await api.post(`/children/public/verify`, { nik, tanggal_lahir: tanggalLahir });
+      const verifyRes = await api.post(`/children/public/verify`, { nik, tanggal_lahir: apiTanggalLahir });
       const token = verifyRes.data.token;
 
       // Step 2: Fetch data using JWT token
@@ -230,10 +238,21 @@ export default function CekDataAnak() {
                     <Calendar size={20} />
                   </div>
                   <input
-                    type="date"
-                    lang="id-ID"
+                    type="text"
+                    placeholder="HH/BB/TTTT (Cth: 17/08/2020)"
                     value={tanggalLahir}
-                    onChange={e => setTanggalLahir(e.target.value)}
+                    onChange={e => {
+                      let val = e.target.value.replace(/\D/g, '');
+                      if (val.length > 8) val = val.substring(0, 8);
+                      let formatted = val;
+                      if (val.length > 4) {
+                        formatted = `${val.substring(0, 2)}/${val.substring(2, 4)}/${val.substring(4)}`;
+                      } else if (val.length > 2) {
+                        formatted = `${val.substring(0, 2)}/${val.substring(2)}`;
+                      }
+                      setTanggalLahir(formatted);
+                    }}
+                    maxLength={10}
                     style={{
                       width: '100%', padding: '16px 16px 16px 48px', background: 'rgba(255, 255, 255, 0.6)',
                       border: '2px solid var(--border)', borderRadius: '16px', fontSize: '1rem', fontWeight: 500,
