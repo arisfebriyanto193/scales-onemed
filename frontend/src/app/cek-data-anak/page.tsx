@@ -433,6 +433,7 @@ export default function CekDataAnak() {
                         <th style={{ padding: '20px', fontSize: '0.8rem' }}>Status Kesehatan</th>
                         <th style={{ padding: '20px', fontSize: '0.8rem' }}>Status Gizi (BB/U)</th>
                         <th style={{ padding: '20px', fontSize: '0.8rem' }}>Status Tinggi (TB/U)</th>
+                        <th style={{ padding: '20px', fontSize: '0.8rem' }}>Indikasi Stunting</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -477,6 +478,15 @@ export default function CekDataAnak() {
                                 : 'badge-normal'
                             }`} style={{ padding: '6px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                               {m.status_tb_u || '-'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '20px' }}>
+                            <span className={`badge ${
+                              m.status_tb_u?.toLowerCase().includes('pendek')
+                                ? 'badge-buruk'
+                                : 'badge-normal'
+                            }`} style={{ padding: '6px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap', fontWeight: 'bold' }}>
+                              {m.status_tb_u?.toLowerCase().includes('pendek') ? 'Ya (Stunting)' : 'Tidak'}
                             </span>
                           </td>
                         </tr>
