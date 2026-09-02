@@ -148,17 +148,24 @@ export default function CekDataAnak() {
     return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div style={{
-      height: '100vh',
-      overflowY: 'auto',
-      background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #f0fdf4 100%)',
-      fontFamily: 'inherit',
-      color: 'var(--text-main)',
-      paddingBottom: '80px',
-      position: 'relative',
-      zIndex: 0
-    }}>
+      <div
+        className="print-container"
+        style={{
+          height: '100vh',
+          overflowY: 'auto',
+          background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #f0fdf4 100%)',
+          fontFamily: 'inherit',
+          color: 'var(--text-main)',
+          paddingBottom: '80px',
+          position: 'relative',
+          zIndex: 0
+        }}
+      >
       <div style={{
         position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%',
         background: 'rgba(96, 165, 250, 0.1)' /* Tailwind blue-400 */, filter: 'blur(100px)', borderRadius: '50%', zIndex: -1, pointerEvents: 'none'
@@ -170,7 +177,7 @@ export default function CekDataAnak() {
 
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '40px 20px' }}>       
         {/* Header */}
-        <header style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', gap: '16px' }}>
+        <header className="no-print" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{
               height: '52px', width: '52px', borderRadius: '14px', background: '#fff',
@@ -189,7 +196,7 @@ export default function CekDataAnak() {
         </header>
 
         {/* Search Box */}
-        <div style={{
+        <div className="no-print" style={{
           background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(16px)',
           border: '1px solid #ffffff', borderRadius: '24px', padding: '40px',
           boxShadow: '0 20px 40px -15px rgba(0,0,0,0.05)', marginBottom: '40px'
@@ -295,15 +302,59 @@ export default function CekDataAnak() {
 
         {/* Results */}
         {data && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', animation: 'fadeInUp 0.5s ease-out forwards' }}>
+          <div className="print-content" style={{ display: 'flex', flexDirection: 'column', gap: '32px', animation: 'fadeInUp 0.5s ease-out forwards' }}>
             
             {/* Profil Anak Card */}
             <div className="card" style={{ padding: '32px', borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px -15px rgba(0,0,0,0.05)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border-light)' }}>
-                <div style={{ padding: '10px', background: 'var(--primary-50)', color: 'var(--primary)', borderRadius: '12px' }}>
-                  <Baby size={24} />
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '24px',
+                paddingBottom: '24px',
+                borderBottom: '1px solid var(--border-light)',
+                gap: '16px',
+                flexWrap: 'wrap'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    padding: '10px',
+                    background: 'var(--primary-50)',
+                    color: 'var(--primary)',
+                    borderRadius: '12px'
+                  }}>
+                    <Baby size={24} />
+                  </div>
+
+                  <h3 style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 800,
+                    margin: 0
+                  }}>
+                    Profil Anak
+                  </h3>
                 </div>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>Profil Anak</h3>
+
+                <button
+                  onClick={handlePrint}
+                  className="no-print"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 18px',
+                    border: 'none',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #2563eb, #10b981)',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 5px 15px rgba(37, 99, 235, 0.2)'
+                  }}
+                >
+                  🖨️ Cetak PDF
+                </button>
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '24px' }}>
@@ -424,7 +475,7 @@ export default function CekDataAnak() {
             )}
 
             {/* Riwayat Pengukuran */}
-            <div className="card" style={{ padding: 0, borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px -15px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div className="card measurement-history" style={{ padding: 0, borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px -15px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '32px', borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ padding: '10px', background: '#f5f3ff', color: '#8b5cf6', borderRadius: '12px' }}>
                   <Calendar size={24} />
@@ -520,14 +571,133 @@ export default function CekDataAnak() {
 
       </div>
       <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          @media print {
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+      
+      .measurement-history {
+        break-before: page;
+        page-break-before: always;
+      }
+      
+      .card canvas {
+        max-width: 100% !important;
+      }
+
+      .card {
+        overflow: visible !important;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      html,
+      body {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+      }
+
+      /* Hilangkan elemen yang tidak perlu dicetak */
+      .no-print {
+        display: none !important;
+      }
+
+      /* Container utama harus mengikuti seluruh panjang konten */
+      .print-container {
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #fff !important;
+      }
+
+      /* Hilangkan animasi saat print */
+      .print-container * {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      /* Konten hasil */
+      .print-content {
+        width: 100% !important;
+      }
+
+      /* Card */
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb !important;
+      }
+
+      /* Jangan sampai profil/grafik terpotong */
+      .card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* Grafik */
+      canvas {
+        max-width: 100% !important;
+      }
+
+      /* Tabel */
+      table {
+        width: 100% !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: auto !important;
+      }
+
+      thead {
+        display: table-header-group !important;
+      }
+
+      /* Warna tetap dicetak */
+      div,
+      span,
+      th,
+      td {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+
+        to {
+          transform: rotate(360deg);
+        }
+      }
       `}</style>
     </div>
   );
