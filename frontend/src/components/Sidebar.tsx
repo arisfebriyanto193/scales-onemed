@@ -70,7 +70,7 @@ export default function Sidebar({ onCloseMobile }: { onCloseMobile?: () => void 
   return (
     <aside style={{
       width: '240px',
-      minHeight: '100vh',
+      height: '100%',
       background: '#ffffff',
       borderRight: '1px solid #e8edf2',
       display: 'flex',
